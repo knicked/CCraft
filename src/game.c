@@ -164,6 +164,9 @@ void game_draw(game *g)
     rotation_amount.y += g->mouse_delta.x * g->sensitivity;
     add_v2(&g->w.camera_rotation, &g->w.camera_rotation, &rotation_amount);
 
+    g->w.camera_rotation.x = g->w.camera_rotation.x > 89.0f ? 89.0f : g->w.camera_rotation.x;
+    g->w.camera_rotation.x = g->w.camera_rotation.x < -89.0f ? -89.0f : g->w.camera_rotation.x;
+
     if (move_dir.x != 0.0f || move_dir.y != 0.0f || move_dir.z != 0.0f)
     {
         normalize(&move_dir);
