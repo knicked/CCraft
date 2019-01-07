@@ -2,8 +2,6 @@
 
 #include "game.h"
 
-#include <string.h>
-
 void cursor_pos_callback(GLFWwindow* window, double mouse_x, double mouse_y)
 {
     input *i = &((game *) glfwGetWindowUserPointer(window))->i;

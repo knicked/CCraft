@@ -23,3 +23,18 @@ const block_data blocks[256] = {
     {48, 48, 48, 48, 48, 48}, //sponge
     {49, 49, 49, 49, 49, 49}, //glass
 };
+
+int block_is_opaque(block_id block)
+{
+    switch (block)
+    {
+        case AIR:
+        case FLOWING_WATER:
+        case STILL_WATER:
+        case GLASS:
+            return 0;
+            break;
+        default:
+            return 1;
+    }
+}

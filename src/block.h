@@ -34,4 +34,6 @@ typedef struct
 
 extern const block_data blocks[256];
 
+int block_is_opaque(block_id block);
+
 #endif

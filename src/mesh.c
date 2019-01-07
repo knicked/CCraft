@@ -100,7 +100,7 @@ int make_block(block_vertex *data, vec3 position, vec2 face_tex[6], block_id nei
 
     for (int i = 0; i < 6; i++)
     {
-        if (neighbours[i] == AIR)
+        if (!block_is_opaque(neighbours[i]))
         {
             for (int j = 0; j < 6; j++)
             {
