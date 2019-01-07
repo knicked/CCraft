@@ -4,6 +4,8 @@
 #include "block.h"
 #include "mesh.h"
 
+#include <glad/glad.h>
+
 #define CHUNK_SIZE 16
 #define WORLD_HEIGHT 256
 

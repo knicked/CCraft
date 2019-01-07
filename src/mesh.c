@@ -1,5 +1,7 @@
 #include "mesh.h"
 
+#include <glad/glad.h>
+
 int make_block(block_vertex *data, vec3 position, vec2 face_tex[6], block_id neighbours[6])
 {
     static vec3 positions[][4] = {

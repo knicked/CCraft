@@ -2,6 +2,8 @@
 
 #include "world.h"
 
+#include <glad/glad.h>
+
 void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer)
 {
     c->vert_count = 0;

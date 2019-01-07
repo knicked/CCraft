@@ -11,6 +11,7 @@ add_executable(
     src/chunk.c
     src/world.c
     src/game.c
+    src/input.c
     src/main.c
     deps/glad/src/glad.c
     deps/lodepng/lodepng.c)

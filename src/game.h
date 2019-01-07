@@ -3,6 +3,7 @@
 
 #include "mesh.h"
 #include "world.h"
+#include "input.h"
 
 typedef struct
 {
@@ -11,13 +12,8 @@ typedef struct
     float window_height;
     int v_sync;
 
+    input i;
     float sensitivity;
-
-    int mouse_buttons[3];
-    int mouse_locked;
-    vec2 mouse_pos;
-    vec2 last_mouse_pos;
-    vec2 mouse_delta;
 
     int print_fps;
 

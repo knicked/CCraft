@@ -4,9 +4,6 @@
 #include "glmath.h"
 #include "block.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 typedef struct
 {
     vec3 position;
