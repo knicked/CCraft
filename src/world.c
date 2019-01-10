@@ -11,11 +11,14 @@ void world_init(world *w)
     w->camera_rotation = (vec2){0.0f, 0.0f};
 
     w->blocks_program = load_program("res/shaders/blocks.vsh", "res/shaders/blocks.fsh");
+    w->blocks_position_location = glGetAttribLocation(w->blocks_program, "position");
+    w->blocks_tex_coord_location = glGetAttribLocation(w->blocks_program, "texCoord");
     w->blocks_model_location = glGetUniformLocation(w->blocks_program, "model");
     w->blocks_view_location = glGetUniformLocation(w->blocks_program, "view");
     w->blocks_projection_location = glGetUniformLocation(w->blocks_program, "projection");
 
     w->lines_program = load_program("res/shaders/lines.vsh", "res/shaders/lines.fsh");
+    w->lines_position_location = glGetAttribLocation(w->lines_program, "position");
     w->lines_view_location = glGetUniformLocation(w->lines_program, "view");
     w->lines_projection_location = glGetUniformLocation(w->lines_program, "projection");
 
@@ -26,7 +29,7 @@ void world_init(world *w)
         w->chunks[x] = malloc(WORLD_SIZE * sizeof(chunk));
         for (int z = 0; z < WORLD_SIZE; z++)
         {
-            chunk_init(&w->chunks[x][z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2);
+            chunk_init(&w->chunks[x][z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2, w->blocks_position_location, w->blocks_tex_coord_location);
         }
     }
 
@@ -43,8 +46,8 @@ void world_init(world *w)
     glGenBuffers(1, &w->selection_box_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, w->selection_box_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * 24, NULL, GL_STREAM_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, NULL);
-    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(w->lines_position_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, NULL);
+    glEnableVertexAttribArray(w->lines_position_location);
 }
 
 void world_draw(world *w)
@@ -79,7 +82,7 @@ void world_draw(world *w)
             vec3 chunk_translation = {x * CHUNK_SIZE, 0.0f, z * CHUNK_SIZE};
             translate(&w->blocks_model, &chunk_translation);
             glUniformMatrix4fv(w->blocks_model_location, 1, GL_FALSE, w->blocks_model.value);
-            if (c->dirty) 
+            if (c->dirty)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, c->buffer);
                 chunk_build_buffer(c, w, w->chunk_data_buffer);

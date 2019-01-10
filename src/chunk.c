@@ -42,17 +42,17 @@ void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer)
     c->dirty = 0;
 }
 
-void chunk_init(chunk *c, int x, int z)
+void chunk_init(chunk *c, int x, int z, GLuint position_location, GLuint tex_coord_location)
 {
     glGenBuffers(1, &c->buffer);
     glBindBuffer(GL_ARRAY_BUFFER, c->buffer);
 
     glGenVertexArrays(1, &c->vao);
     glBindVertexArray(c->vao);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, NULL);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, (GLvoid *) (sizeof(GLfloat) * 3));
+    glEnableVertexAttribArray(position_location);
+    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, NULL);
+    glEnableVertexAttribArray(tex_coord_location);
+    glVertexAttribPointer(tex_coord_location, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, (GLvoid *) (sizeof(GLfloat) * 3));
 
     static const int GRASS_LEVEL = 100;
 

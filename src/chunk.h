@@ -21,7 +21,7 @@ typedef struct
 } chunk;
 
 void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer);
-void chunk_init(chunk *c, int x, int z);
+void chunk_init(chunk *c, int x, int z, GLuint position_location, GLuint tex_coord_location);
 void chunk_destroy(chunk *c);
 
 #endif
