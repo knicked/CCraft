@@ -5,9 +5,7 @@
 void cursor_pos_callback(GLFWwindow* window, double mouse_x, double mouse_y)
 {
     input *i = &((game *) glfwGetWindowUserPointer(window))->i;
-    vec2 new_mouse_pos = {mouse_x, mouse_y};
-    subtract_v2(&i->mouse_delta, &i->mouse_pos, &new_mouse_pos);
-    i->mouse_pos = new_mouse_pos;
+    i->mouse_pos = (vec2) {mouse_x, mouse_y};
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -70,9 +68,8 @@ void input_init(input *i, GLFWwindow *window)
 
 void input_end_frame(input *i)
 {
+    subtract_v2(&i->mouse_delta, &i->last_mouse_pos, &i->mouse_pos);
     i->last_mouse_pos = i->mouse_pos;
-    i->mouse_delta.x = 0.0f;
-    i->mouse_delta.y = 0.0f;
     i->scroll_delta = 0.0;
     for (int j = 0; j < 512; j++)
     {

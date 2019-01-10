@@ -37,9 +37,9 @@ int main(int argc, char **argv)
     
     while (!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
         game_draw(&g);
         glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
     game_destroy(&g);
