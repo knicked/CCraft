@@ -17,6 +17,13 @@ typedef struct
 
     vec3 camera_position;
     vec2 camera_rotation;
+    int selected_block_x;
+    int selected_block_y;
+    int selected_block_z;
+    int selected_face_x;
+    int selected_face_y;
+    int selected_face_z;
+    int block_in_range;
 
     block_vertex *chunk_data_buffer;
 

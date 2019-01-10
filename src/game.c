@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 
-int calculate_selected_block(world *w, int *x, int *y, int *z, int *face_x, int *face_y, int *face_z, float radius)
+void calculate_selected_block(world *w, float radius)
 {
     vec3 direction =
     {
@@ -12,9 +12,9 @@ int calculate_selected_block(world *w, int *x, int *y, int *z, int *face_x, int 
         .y = sinf(RADIANS(w->camera_rotation.x))
     };
 
-    *x = roundf(w->camera_position.x);
-    *z = roundf(w->camera_position.z);
-    *y = roundf(w->camera_position.y);
+    w->selected_block_x = roundf(w->camera_position.x);
+    w->selected_block_z = roundf(w->camera_position.z);
+    w->selected_block_y = roundf(w->camera_position.y);
 
     int step_x = direction.x > 0.0f ? 1 : direction.x < 0.0f ? -1 : 0;
     int step_z = direction.z > 0.0f ? 1 : direction.z < 0.0f ? -1 : 0;
@@ -34,50 +34,69 @@ int calculate_selected_block(world *w, int *x, int *y, int *z, int *face_x, int 
         {
             if (t_max_x < t_max_z)
             {
-                if (t_max_x > radius) return 0;
-                *x += step_x;
+                if (t_max_x > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_x += step_x;
                 t_max_x += t_delta_x;
 
-                *face_x = -step_x;
-                *face_y = 0;
-                *face_z = 0;
+                w->selected_face_x = -step_x;
+                w->selected_face_y = 0;
+                w->selected_face_z = 0;
             }
             else
             {
-                if (t_max_z > radius) return 0;
-                *z += step_z;
+                if (t_max_z > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_z += step_z;
                 t_max_z += t_delta_z;
 
-                *face_x = 0;
-                *face_y = 0;
-                *face_z = -step_z;
+                w->selected_face_x = 0;
+                w->selected_face_y = 0;
+                w->selected_face_z = -step_z;
             }
         }
         else
         {
             if (t_max_y < t_max_z)
             {
-                if (t_max_y > radius) return 0;
-                *y += step_y;
+                if (t_max_y > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_y += step_y;
                 t_max_y += t_delta_y;
 
-                *face_x = 0;
-                *face_y = -step_y;
-                *face_z = 0;
+                w->selected_face_x = 0;
+                w->selected_face_y = -step_y;
+                w->selected_face_z = 0;
             }
             else
             {
-                if (t_max_z > radius) return 0;
-                *z += step_z;
+                if (t_max_z > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_z += step_z;
                 t_max_z += t_delta_z;
 
-                *face_x = 0;
-                *face_y = 0;
-                *face_z = -step_z;
+                w->selected_face_x = 0;
+                w->selected_face_y = 0;
+                w->selected_face_z = -step_z;
             }
         }
-        if (world_get_block(w, *x, *y, *z) != AIR)
-            return 1;
+        if (world_get_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z) != AIR)
+        {
+            w->block_in_range = 1;
+            return;
+        }
     }
 }
 
@@ -139,16 +158,7 @@ void game_draw(game *g)
         g->print_fps = !g->print_fps;
     }
 
-    int selected_block_x;
-    int selected_block_y;
-    int selected_block_z;
-    int selected_face_x;
-    int selected_face_y;
-    int selected_face_z;
-
-    int block_in_range = calculate_selected_block(&g->w,
-    &selected_block_x, &selected_block_y, &selected_block_z,
-    &selected_face_x, &selected_face_y, &selected_face_z, 5.0f);
+    calculate_selected_block(&g->w, 5.0f);
 
     if (g->i.mouse_locked)
     {
@@ -196,13 +206,16 @@ void game_draw(game *g)
 
         if (g->i.mouse_buttons_down[GLFW_MOUSE_BUTTON_LEFT])
         {
-            if (block_in_range)
-                world_set_block(&g->w, selected_block_x, selected_block_y, selected_block_z, AIR);
+            if (g->w.block_in_range)
+                world_set_block(&g->w, g->w.selected_block_x, g->w.selected_block_y, g->w.selected_block_z, AIR);
         }
         if (g->i.mouse_buttons_down[GLFW_MOUSE_BUTTON_RIGHT])
         {
-            if (block_in_range)
-                world_set_block(&g->w, selected_block_x + selected_face_x, selected_block_y + selected_face_y, selected_block_z + selected_face_z, g->selected_block);
+            if (g->w.block_in_range)
+                world_set_block(&g->w,
+                g->w.selected_block_x + g->w.selected_face_x,
+                g->w.selected_block_y + g->w.selected_face_y,
+                g->w.selected_block_z + g->w.selected_face_z, g->selected_block);
         }
     }
 
