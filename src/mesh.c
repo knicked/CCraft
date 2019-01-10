@@ -114,3 +114,45 @@ int make_block(block_vertex *data, vec3 position, vec2 face_tex[6], block_id nei
     }
     return vert_count;
 }
+
+void make_selection_box(vec3 *data, int x, int y, int z)
+{
+    static const vec3 positions[] =
+    {
+        {-0.5f, 0.5f, 0.5f},
+        { 0.5f, 0.5f, 0.5f},
+        { 0.5f, 0.5f,-0.5f},
+        {-0.5f, 0.5f,-0.5f},
+
+        {-0.5f,-0.5f, 0.5f},
+        { 0.5f,-0.5f, 0.5f},
+        { 0.5f,-0.5f,-0.5f},
+        {-0.5f,-0.5f,-0.5f},
+    };
+
+    static const GLushort indices[] =
+    {
+        0, 1,
+        1, 2,
+        2, 3,
+        3, 0,
+
+        0, 4,
+        1, 5,
+        2, 6,
+        3, 7,
+
+        4, 5,
+        5, 6,
+        6, 7,
+        7, 4,
+    };
+
+    for (int i = 0; i < 24; i++)
+    {
+        data->x = 1.001f * positions[indices[i]].x + x;
+        data->y = 1.001f * positions[indices[i]].y + y;
+        data->z = 1.001f * positions[indices[i]].z + z;
+        data++;
+    }
+}

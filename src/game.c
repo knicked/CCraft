@@ -125,9 +125,10 @@ void game_init(game *g, GLFWwindow *window)
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
+    glDepthFunc(GL_LEQUAL);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_LINE_SMOOTH);
 
     world_init(&g->w);
 
@@ -158,10 +159,30 @@ void game_draw(game *g)
         g->print_fps = !g->print_fps;
     }
 
-    calculate_selected_block(&g->w, 5.0f);
-
     if (g->i.mouse_locked)
     {
+        vec2 rotation_amount = {0.0f, 0.0f};
+
+        if (g->i.keys[GLFW_KEY_LEFT])
+            rotation_amount.y += 90.0f;
+        if (g->i.keys[GLFW_KEY_RIGHT])
+            rotation_amount.y -= 90.0f;
+        if (g->i.keys[GLFW_KEY_UP])
+            rotation_amount.x += 90.0f;
+        if (g->i.keys[GLFW_KEY_DOWN])
+            rotation_amount.x -= 90.0f;
+
+        multiply_v2f(&rotation_amount, &rotation_amount, g->delta_time);
+        if (g->i.mouse_locked)
+        {
+            rotation_amount.x += g->i.mouse_delta.y * g->sensitivity;
+            rotation_amount.y += g->i.mouse_delta.x * g->sensitivity;
+        }
+        add_v2(&g->w.camera_rotation, &g->w.camera_rotation, &rotation_amount);
+
+        g->w.camera_rotation.x = g->w.camera_rotation.x > 89.0f ? 89.0f : g->w.camera_rotation.x;
+        g->w.camera_rotation.x = g->w.camera_rotation.x < -89.0f ? -89.0f : g->w.camera_rotation.x;
+
         vec3 move_dir = {0.0f, 0.0f, 0.0f};
 
         if (g->i.keys[GLFW_KEY_SPACE])
@@ -219,6 +240,8 @@ void game_draw(game *g)
         }
     }
 
+    calculate_selected_block(&g->w, 5.0f);
+
     if (g->i.keys_down[GLFW_KEY_ESCAPE])
     {
         if (g->i.mouse_locked)
@@ -240,28 +263,6 @@ void game_draw(game *g)
         g->v_sync = !g->v_sync;
         glfwSwapInterval(g->v_sync);
     }
-
-    vec2 rotation_amount = {0.0f, 0.0f};
-
-    if (g->i.keys[GLFW_KEY_LEFT])
-        rotation_amount.y += 90.0f;
-    if (g->i.keys[GLFW_KEY_RIGHT])
-        rotation_amount.y -= 90.0f;
-    if (g->i.keys[GLFW_KEY_UP])
-        rotation_amount.x += 90.0f;
-    if (g->i.keys[GLFW_KEY_DOWN])
-        rotation_amount.x -= 90.0f;
-
-    multiply_v2f(&rotation_amount, &rotation_amount, g->delta_time);
-    if (g->i.mouse_locked)
-    {
-        rotation_amount.x += g->i.mouse_delta.y * g->sensitivity;
-        rotation_amount.y += g->i.mouse_delta.x * g->sensitivity;
-    }
-    add_v2(&g->w.camera_rotation, &g->w.camera_rotation, &rotation_amount);
-
-    g->w.camera_rotation.x = g->w.camera_rotation.x > 89.0f ? 89.0f : g->w.camera_rotation.x;
-    g->w.camera_rotation.x = g->w.camera_rotation.x < -89.0f ? -89.0f : g->w.camera_rotation.x;
 
     g->w.window_width = g->window_width;
     g->w.window_height = g->window_height;

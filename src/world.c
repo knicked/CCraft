@@ -3,6 +3,7 @@
 #include "util.h"
 
 #include <stdlib.h>
+#include <stddef.h>
 
 void world_init(world *w)
 {
@@ -13,6 +14,10 @@ void world_init(world *w)
     w->blocks_model_location = glGetUniformLocation(w->blocks_program, "model");
     w->blocks_view_location = glGetUniformLocation(w->blocks_program, "view");
     w->blocks_projection_location = glGetUniformLocation(w->blocks_program, "projection");
+
+    w->lines_program = load_program("res/shaders/lines.vsh", "res/shaders/lines.fsh");
+    w->lines_view_location = glGetUniformLocation(w->lines_program, "view");
+    w->lines_projection_location = glGetUniformLocation(w->lines_program, "projection");
 
     w->chunk_data_buffer = malloc(36 * CHUNK_SIZE * CHUNK_SIZE * WORLD_HEIGHT * sizeof(block_vertex));
 
@@ -31,6 +36,15 @@ void world_init(world *w)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     load_png_texture("res/textures/terrain.png");
+
+    glGenVertexArrays(1, &w->selection_box_vao);
+    glBindVertexArray(w->selection_box_vao);
+
+    glGenBuffers(1, &w->selection_box_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, w->selection_box_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * 24, NULL, GL_STREAM_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, NULL);
+    glEnableVertexAttribArray(0);
 }
 
 void world_draw(world *w)
@@ -42,20 +56,20 @@ void world_draw(world *w)
 
     vec3 view_translation;
     multiply_v3f(&view_translation, &w->camera_position, -1.0f);
-    translate(&w->blocks_view, &view_translation);
+    translate(&w->world_view, &view_translation);
     static vec3 axis_up = {0.0f, 1.0f, 0.0f};
     static vec3 axis_right = {1.0f, 0.0f, 0.0f};
     rotate(&temp, &axis_up, RADIANS(w->camera_rotation.y));
-    multiply(&w->blocks_view, &temp, &w->blocks_view);
+    multiply(&w->world_view, &temp, &w->world_view);
     rotate(&temp, &axis_right, RADIANS(w->camera_rotation.x));
-    multiply(&w->blocks_view, &temp, &w->blocks_view);
+    multiply(&w->world_view, &temp, &w->world_view);
 
-    perspective(&w->blocks_projection, 85.0f, w->window_width / w->window_height, 0.001f, 1000.0f);
+    perspective(&w->world_projection, 85.0f, w->window_width / w->window_height, 0.05f, 1000.0f);
 
     glUseProgram(w->blocks_program);
 
-    glUniformMatrix4fv(w->blocks_projection_location, 1, GL_FALSE, w->blocks_projection.value);
-    glUniformMatrix4fv(w->blocks_view_location, 1, GL_FALSE, w->blocks_view.value);
+    glUniformMatrix4fv(w->blocks_projection_location, 1, GL_FALSE, w->world_projection.value);
+    glUniformMatrix4fv(w->blocks_view_location, 1, GL_FALSE, w->world_view.value);
 
     for (int x = -WORLD_SIZE / 2; x < WORLD_SIZE - WORLD_SIZE / 2; x++)
     {
@@ -74,6 +88,23 @@ void world_draw(world *w)
             glDrawArrays(GL_TRIANGLES, 0, c->vert_count);
         }
     }
+
+    if (w->block_in_range)
+    {
+        glUseProgram(w->lines_program);
+
+        glUniformMatrix4fv(w->lines_projection_location, 1, GL_FALSE, w->world_projection.value);
+        glUniformMatrix4fv(w->lines_view_location, 1, GL_FALSE, w->world_view.value);
+
+        vec3 data[24];
+        make_selection_box(data, w->selected_block_x, w->selected_block_y, w->selected_block_z);
+
+        glBindBuffer(GL_ARRAY_BUFFER, w->selection_box_buffer);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
+
+        glBindVertexArray(w->selection_box_vao);
+        glDrawArrays(GL_LINES, 0, 24);
+    }
 }
 
 void world_destroy(world *w)
@@ -87,6 +118,9 @@ void world_destroy(world *w)
         free(w->chunks[x]);
     }
     free(w->chunk_data_buffer);
+
+    glDeleteBuffers(1, &w->selection_box_buffer);
+    glDeleteVertexArrays(1, &w->selection_box_vao);   
 
     glDeleteTextures(1, &w->blocks_texture);
     glDeleteProgram(w->blocks_program);

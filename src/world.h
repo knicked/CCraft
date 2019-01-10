@@ -28,14 +28,21 @@ typedef struct
     block_vertex *chunk_data_buffer;
 
     mat4 blocks_model;
-    mat4 blocks_view;
-    mat4 blocks_projection;
+    mat4 world_view;
+    mat4 world_projection;
 
     GLuint blocks_texture;
     GLuint blocks_program;
     GLuint blocks_model_location;
     GLuint blocks_view_location;
     GLuint blocks_projection_location;
+
+    GLuint lines_program;
+    GLuint lines_view_location;
+    GLuint lines_projection_location;
+    
+    GLuint selection_box_vao;
+    GLuint selection_box_buffer;
 } world;
 
 void world_init(world *w);
