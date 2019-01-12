@@ -2,14 +2,116 @@
 
 #include "util.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <math.h>
+
+void calculate_selected_block(world *w, float radius)
+{
+    vec3 direction =
+    {
+        .x = -sinf(RADIANS(w->camera_rotation.y)) * cosf(RADIANS(w->camera_rotation.x)),
+        .z = -cosf(RADIANS(w->camera_rotation.y)) * cosf(RADIANS(w->camera_rotation.x)),
+        .y = sinf(RADIANS(w->camera_rotation.x))
+    };
+
+    w->selected_block_x = roundf(w->camera_position.x);
+    w->selected_block_z = roundf(w->camera_position.z);
+    w->selected_block_y = roundf(w->camera_position.y);
+
+    int step_x = direction.x > 0.0f ? 1 : direction.x < 0.0f ? -1 : 0;
+    int step_z = direction.z > 0.0f ? 1 : direction.z < 0.0f ? -1 : 0;
+    int step_y = direction.y > 0.0f ? 1 : direction.y < 0.0f ? -1 : 0;
+
+    float t_max_x = (direction.x > 0.0f ? roundf(w->camera_position.x) + 0.5f - w->camera_position.x : roundf(w->camera_position.x) - 0.5f - w->camera_position.x) / direction.x;
+    float t_max_z = (direction.z > 0.0f ? roundf(w->camera_position.z) + 0.5f - w->camera_position.z : roundf(w->camera_position.z) - 0.5f - w->camera_position.z) / direction.z;
+    float t_max_y = (direction.y > 0.0f ? roundf(w->camera_position.y) + 0.5f - w->camera_position.y : roundf(w->camera_position.y) - 0.5f - w->camera_position.y) / direction.y;
+
+    float t_delta_x = (float) step_x / direction.x;
+    float t_delta_z = (float) step_z / direction.z;
+    float t_delta_y = (float) step_y / direction.y;
+
+    while (1)
+    {
+        if (t_max_x < t_max_y)
+        {
+            if (t_max_x < t_max_z)
+            {
+                if (t_max_x > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_x += step_x;
+                t_max_x += t_delta_x;
+
+                w->selected_face_x = -step_x;
+                w->selected_face_y = 0;
+                w->selected_face_z = 0;
+            }
+            else
+            {
+                if (t_max_z > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_z += step_z;
+                t_max_z += t_delta_z;
+
+                w->selected_face_x = 0;
+                w->selected_face_y = 0;
+                w->selected_face_z = -step_z;
+            }
+        }
+        else
+        {
+            if (t_max_y < t_max_z)
+            {
+                if (t_max_y > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_y += step_y;
+                t_max_y += t_delta_y;
+
+                w->selected_face_x = 0;
+                w->selected_face_y = -step_y;
+                w->selected_face_z = 0;
+            }
+            else
+            {
+                if (t_max_z > radius)
+                {
+                    w->block_in_range = 0;
+                    return;
+                }
+                w->selected_block_z += step_z;
+                t_max_z += t_delta_z;
+
+                w->selected_face_x = 0;
+                w->selected_face_y = 0;
+                w->selected_face_z = -step_z;
+            }
+        }
+        if (world_get_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z) != AIR)
+        {
+            w->block_in_range = 1;
+            return;
+        }
+    }
+}
 
 void world_init(world *w)
 {
     w->player.box = (bounding_box) {{0.6f, 1.8f, 0.6f}};
     w->player.position = (vec3) {0.0f, 100.5f, 0.0f};
     w->player.velocity = (vec3) {0.0f};
+    w->selected_block = 1;
+    w->destroying_block = 0;
+    w->placing_block = 0;
     w->camera_rotation = (vec2) {0.0f};
 
     w->blocks_program = load_program("res/shaders/blocks.vsh", "res/shaders/blocks.fsh");
@@ -50,6 +152,208 @@ void world_init(world *w)
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * 24, NULL, GL_STREAM_DRAW);
     glVertexAttribPointer(w->lines_position_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, NULL);
     glEnableVertexAttribArray(w->lines_position_location);
+}
+
+void world_handle_input(world *w, input *i)
+{
+    if (i->mouse_locked)
+    {
+        w->camera_rotation.x += i->mouse_delta.y * i->mouse_sensitivity;
+        w->camera_rotation.y += i->mouse_delta.x * i->mouse_sensitivity;
+
+        w->camera_rotation.x = w->camera_rotation.x > 89.0f ? 89.0f : w->camera_rotation.x;
+        w->camera_rotation.x = w->camera_rotation.x < -89.0f ? -89.0f : w->camera_rotation.x;
+
+        w->player.move_direction = (vec3) {0.0f};
+
+        if (i->keys[GLFW_KEY_SPACE])
+            w->player.move_direction.y += 1.0f;
+        if (i->keys[GLFW_KEY_LEFT_SHIFT])
+            w->player.move_direction.y -= 1.0f;
+
+        if (i->keys[GLFW_KEY_W])
+        {
+            w->player.move_direction.x -= sinf(RADIANS(w->camera_rotation.y));
+            w->player.move_direction.z -= cosf(RADIANS(w->camera_rotation.y));
+        }
+        if (i->keys[GLFW_KEY_A])
+        {
+            w->player.move_direction.x -= cosf(RADIANS(w->camera_rotation.y));
+            w->player.move_direction.z += sinf(RADIANS(w->camera_rotation.y));
+        }
+        if (i->keys[GLFW_KEY_S])
+        {
+            w->player.move_direction.x += sinf(RADIANS(w->camera_rotation.y));
+            w->player.move_direction.z += cosf(RADIANS(w->camera_rotation.y));
+        }
+        if (i->keys[GLFW_KEY_D])
+        {
+            w->player.move_direction.x += cosf(RADIANS(w->camera_rotation.y));
+            w->player.move_direction.z -= sinf(RADIANS(w->camera_rotation.y));
+        }
+
+        if (w->player.move_direction.x != 0.0f || w->player.move_direction.y != 0.0f || w->player.move_direction.z != 0.0f)
+        {
+            normalize(&w->player.move_direction);
+        }
+
+        if (i->scroll_delta != 0.0)
+        {
+            w->selected_block += i->scroll_delta;
+            printf("Selected block of ID %d\n", w->selected_block);
+        }
+
+        if (i->mouse_buttons_down[GLFW_MOUSE_BUTTON_LEFT])
+        {
+            w->destroying_block = 1;
+        }
+        if (i->mouse_buttons_down[GLFW_MOUSE_BUTTON_RIGHT])
+        {
+            w->placing_block = 1;      
+        }
+    }
+}
+
+void world_update(world *w, double delta_time)
+{
+    multiply_v3f(&w->player.velocity, &w->player.move_direction, delta_time * 10.0f);
+
+    if (w->block_in_range)
+    {
+        if (w->destroying_block)
+        {
+            world_set_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z, AIR);
+        }
+        else if (w->placing_block)
+        {
+            world_set_block(w,
+                w->selected_block_x + w->selected_face_x,
+                w->selected_block_y + w->selected_face_y,
+                w->selected_block_z + w->selected_face_z, w->selected_block);
+        }
+    }
+    w->destroying_block = 0;
+    w->placing_block = 0;
+
+    vec3 player_min =
+    {
+        w->player.position.x - w->player.box.size.x / 2.0f,
+        w->player.position.y,
+        w->player.position.z - w->player.box.size.z / 2.0f
+    };
+
+    vec3 player_max =
+    {
+        w->player.position.x + w->player.box.size.x / 2.0f,
+        w->player.position.y + w->player.box.size.y,
+        w->player.position.z + w->player.box.size.z / 2.0f
+    };
+
+    for (int axis = 0; axis < 3; axis++)
+    {
+        for (int y = roundf(player_min.y) - 1; y <= roundf(player_max.y) + 1; y++)
+        {
+            for (int x = roundf(player_min.x) - 1; x <= roundf(player_max.x) + 1; x++)
+            {
+                for (int z = roundf(player_min.z) - 1; z <= roundf(player_max.z) + 1; z++)
+                {
+                    if (world_get_block(w, x, y, z) == AIR)
+                        continue;
+
+                    vec3 block_min = 
+                    {
+                        x - block_box.size.x / 2.0f,
+                        y - block_box.size.y / 2.0f,
+                        z - block_box.size.z / 2.0f
+                    };
+
+                    vec3 block_max =
+                    {
+                        x + block_box.size.x / 2.0f,
+                        y + block_box.size.y / 2.0f,
+                        z + block_box.size.z / 2.0f
+                    };
+
+                    if (axis == 0)
+                    {
+                        if (player_min.z < block_max.z && player_max.z > block_min.z && player_min.x < block_max.x && player_max.x > block_min.x)
+                        {
+                            if (w->player.velocity.y > 0.0f && player_max.y <= block_min.y)
+                            {
+                                float difference = block_min.y - player_max.y;
+                                if (difference < w->player.velocity.y)
+                                    w->player.velocity.y = difference;
+                            }
+                            if (w->player.velocity.y < 0.0f && player_min.y >= block_max.y)
+                            {
+                                float difference = block_max.y - player_min.y;
+                                if (difference > w->player.velocity.y)
+                                    w->player.velocity.y = difference;
+                            }
+                        }
+                    }
+                    else if (axis == 1)
+                    {
+                        if (player_min.z < block_max.z && player_max.z > block_min.z && player_min.y < block_max.y && player_max.y > block_min.y)
+                        {
+                            if (w->player.velocity.x > 0.0f && player_max.x <= block_min.x)
+                            {
+                                float difference = block_min.x - player_max.x;
+                                if (difference < w->player.velocity.x)
+                                    w->player.velocity.x = difference;
+                            }
+                            if (w->player.velocity.x < 0.0f && player_min.x >= block_max.x)
+                            {
+                                float difference = block_max.x - player_min.x;
+                                if (difference > w->player.velocity.x)
+                                    w->player.velocity.x = difference;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (player_min.x < block_max.x && player_max.x > block_min.x && player_min.y < block_max.y && player_max.y > block_min.y)
+                        {
+                            if (w->player.velocity.z > 0.0f && player_max.z <= block_min.z)
+                            {
+                                float difference = block_min.z - player_max.z;
+                                if (difference < w->player.velocity.z)
+                                    w->player.velocity.z = difference;
+                            }
+                            if (w->player.velocity.z < 0.0f && player_min.z >= block_max.z)
+                            {
+                                float difference = block_max.z - player_min.z;
+                                if (difference > w->player.velocity.z)
+                                    w->player.velocity.z = difference;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (axis == 0)
+        {
+            player_min.y += w->player.velocity.y;
+            player_max.y += w->player.velocity.y;
+        }
+        else if (axis == 1)
+        {
+            player_min.x += w->player.velocity.x;
+            player_max.x += w->player.velocity.x;
+        }
+        else
+        {
+            player_min.z += w->player.velocity.z;
+            player_max.z += w->player.velocity.z;
+        }
+    }
+
+    add_v3(&w->player.position, &w->player.position, &w->player.velocity);
+
+    w->camera_position = w->player.position;
+    w->camera_position.y += 1.62f;
+
+    calculate_selected_block(w, 5.0f);
 }
 
 void world_draw(world *w)

@@ -32,14 +32,30 @@ int main(int argc, char **argv)
     }
 
     game g;
-    glfwSetWindowUserPointer(window, &g);
+    input i;
+
+    glfwSetWindowUserPointer(window, &i);
+
     game_init(&g, window);
+    input_init(&i, window);
+
+    double last_time;
+    double current_time;
     
     while (!glfwWindowShouldClose(window))
     {
+        current_time = glfwGetTime();
+
+        game_handle_input(&g, &i);
+        game_update(&g, current_time - last_time);
         game_draw(&g);
+
+        input_end_frame(&i);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        last_time = current_time;
     }
 
     game_destroy(&g);

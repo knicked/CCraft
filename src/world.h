@@ -3,6 +3,7 @@
 
 #include "chunk.h"
 #include "entity.h"
+#include "input.h"
 
 #define WORLD_SIZE 32
 
@@ -19,6 +20,9 @@ typedef struct
     entity player;
     vec3 camera_position;
     vec2 camera_rotation;
+    int destroying_block;
+    int placing_block;
+    block_id selected_block;
     int selected_block_x;
     int selected_block_y;
     int selected_block_z;
@@ -51,6 +55,8 @@ typedef struct
 } world;
 
 void world_init(world *w);
+void world_handle_input(world *w, input *i);
+void world_update(world *w, double delta_time);
 void world_draw(world *w);
 void world_destroy(world *w);
 

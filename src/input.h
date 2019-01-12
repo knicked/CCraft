@@ -8,9 +8,14 @@
 
 typedef struct
 {
+    float window_width;
+    float window_height;
+
     int keys[512];
     int keys_down[512];
     int keys_up[512];
+
+    float mouse_sensitivity;
 
     int mouse_buttons[3];
     int mouse_buttons_down[3];

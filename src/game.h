@@ -12,22 +12,15 @@ typedef struct
     float window_height;
     int v_sync;
 
-    input i;
-    float sensitivity;
-
     int print_fps;
-
-    block_id selected_block;
-
-    double delta_time;
-    double last_time;
-    double cur_time;
 
     world w;
 } game;
 
 void game_init(game *g, GLFWwindow *window);
 void game_destroy(game *g);
+void game_handle_input(game *g, input *i);
+void game_update(game *g, double delta_time);
 void game_draw(game *g);
 
 #endif

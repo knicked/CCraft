@@ -7,6 +7,7 @@ typedef struct
 {
     vec3 position;
     vec3 velocity;
+    vec3 move_direction;
     bounding_box box;
 } entity;
 
