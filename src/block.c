@@ -24,6 +24,8 @@ const block_data blocks[256] = {
     {49, 49, 49, 49, 49, 49}, //glass
 };
 
+const bounding_box block_box = {{1.0f, 1.0f, 1.0f}};
+
 int block_is_opaque(block_id block)
 {
     switch (block)

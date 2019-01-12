@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include "chunk.h"
+#include "entity.h"
 
 #define WORLD_SIZE 32
 
@@ -15,6 +16,7 @@ typedef struct
     float window_width;
     float window_height;
 
+    entity player;
     vec3 camera_position;
     vec2 camera_rotation;
     int selected_block_x;

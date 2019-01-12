@@ -7,8 +7,10 @@
 
 void world_init(world *w)
 {
-    w->camera_position = (vec3){0.0f, 102.0f, 0.0f};
-    w->camera_rotation = (vec2){0.0f, 0.0f};
+    w->player.box = (bounding_box) {{0.6f, 1.8f, 0.6f}};
+    w->player.position = (vec3) {0.0f, 100.5f, 0.0f};
+    w->player.velocity = (vec3) {0.0f};
+    w->camera_rotation = (vec2) {0.0f};
 
     w->blocks_program = load_program("res/shaders/blocks.vsh", "res/shaders/blocks.fsh");
     w->blocks_position_location = glGetAttribLocation(w->blocks_program, "position");

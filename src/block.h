@@ -1,7 +1,7 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#include "glmath.h"
+#include "bounding_box.h"
 
 #define AIR 0
 #define STONE 1
@@ -33,6 +33,7 @@ typedef struct
 } block_data;
 
 extern const block_data blocks[256];
+extern const bounding_box block_box;
 
 int block_is_opaque(block_id block);
 

@@ -214,10 +214,127 @@ void game_draw(game *g)
         if (move_dir.x != 0.0f || move_dir.y != 0.0f || move_dir.z != 0.0f)
         {
             normalize(&move_dir);
-            vec3 move_amount;
-            multiply_v3f(&move_amount, &move_dir, g->delta_time * 10.0f);
-            add_v3(&g->w.camera_position, &g->w.camera_position, &move_amount);
         }
+
+        multiply_v3f(&g->w.player.velocity, &move_dir, g->delta_time * 10.0f);
+
+        vec3 player_min =
+        {
+            g->w.player.position.x - g->w.player.box.size.x / 2.0f,
+            g->w.player.position.y,
+            g->w.player.position.z - g->w.player.box.size.z / 2.0f
+        };
+
+        vec3 player_max =
+        {
+            g->w.player.position.x + g->w.player.box.size.x / 2.0f,
+            g->w.player.position.y + g->w.player.box.size.y,
+            g->w.player.position.z + g->w.player.box.size.z / 2.0f
+        };
+
+        for (int axis = 0; axis < 3; axis++)
+        {
+            for (int y = roundf(player_min.y) - 1; y <= roundf(player_max.y) + 1; y++)
+            {
+                for (int x = roundf(player_min.x) - 1; x <= roundf(player_max.x) + 1; x++)
+                {
+                    for (int z = roundf(player_min.z) - 1; z <= roundf(player_max.z) + 1; z++)
+                    {
+                        if (world_get_block(&g->w, x, y, z) == AIR)
+                            continue;
+
+                        vec3 block_min = 
+                        {
+                            x - block_box.size.x / 2.0f,
+                            y - block_box.size.y / 2.0f,
+                            z - block_box.size.z / 2.0f
+                        };
+                        
+                        vec3 block_max =
+                        {
+                            x + block_box.size.x / 2.0f,
+                            y + block_box.size.y / 2.0f,
+                            z + block_box.size.z / 2.0f
+                        };
+
+                        if (axis == 0)
+                        {
+                            if (player_min.z < block_max.z && player_max.z > block_min.z && player_min.x < block_max.x && player_max.x > block_min.x)
+                            {
+                                if (g->w.player.velocity.y > 0.0f && player_max.y <= block_min.y)
+                                {
+                                    float difference = block_min.y - player_max.y;
+                                    if (difference < g->w.player.velocity.y)
+                                        g->w.player.velocity.y = difference;
+                                }
+                                if (g->w.player.velocity.y < 0.0f && player_min.y >= block_max.y)
+                                {
+                                    float difference = block_max.y - player_min.y;
+                                    if (difference > g->w.player.velocity.y)
+                                        g->w.player.velocity.y = difference;
+                                }
+                            }
+                        }
+                        else if (axis == 1)
+                        {
+                            if (player_min.z < block_max.z && player_max.z > block_min.z && player_min.y < block_max.y && player_max.y > block_min.y)
+                            {
+                                if (g->w.player.velocity.x > 0.0f && player_max.x <= block_min.x)
+                                {
+                                    float difference = block_min.x - player_max.x;
+                                    if (difference < g->w.player.velocity.x)
+                                        g->w.player.velocity.x = difference;
+                                }
+                                if (g->w.player.velocity.x < 0.0f && player_min.x >= block_max.x)
+                                {
+                                    float difference = block_max.x - player_min.x;
+                                    if (difference > g->w.player.velocity.x)
+                                        g->w.player.velocity.x = difference;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (player_min.x < block_max.x && player_max.x > block_min.x && player_min.y < block_max.y && player_max.y > block_min.y)
+                            {
+                                if (g->w.player.velocity.z > 0.0f && player_max.z <= block_min.z)
+                                {
+                                    float difference = block_min.z - player_max.z;
+                                    if (difference < g->w.player.velocity.z)
+                                        g->w.player.velocity.z = difference;
+                                }
+                                if (g->w.player.velocity.z < 0.0f && player_min.z >= block_max.z)
+                                {
+                                    float difference = block_max.z - player_min.z;
+                                    if (difference > g->w.player.velocity.z)
+                                        g->w.player.velocity.z = difference;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (axis == 0)
+            {
+                player_min.y += g->w.player.velocity.y;
+                player_max.y += g->w.player.velocity.y;
+            }
+            else if (axis == 1)
+            {
+                player_min.x += g->w.player.velocity.x;
+                player_max.x += g->w.player.velocity.x;
+            }
+            else
+            {
+                player_min.z += g->w.player.velocity.z;
+                player_max.z += g->w.player.velocity.z;
+            }
+        }
+
+        add_v3(&g->w.player.position, &g->w.player.position, &g->w.player.velocity);
+
+        g->w.camera_position = g->w.player.position;
+        g->w.camera_position.y += 1.62f;
 
         if (g->i.scroll_delta != 0.0)
         {
