@@ -76,9 +76,6 @@ void chunk_init(chunk *c, int x, int z, GLuint position_location, GLuint tex_coo
 
     c->x = x;
     c->z = z;
-
-    c->dirty = 1;
-    c->vert_count = 0;
 }
 
 void chunk_destroy(chunk *c)

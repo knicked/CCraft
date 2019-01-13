@@ -39,18 +39,27 @@ int main(int argc, char **argv)
     game_init(&g, window);
     input_init(&i, window);
 
-    double last_time;
-    double current_time;
-    
+    double last_time = 0.0;
+    double current_time = 0.0;
+    double delta_time = 0.0;
+    double tick_accumulator = 0.0;
+    const double tick_interval = 1.0 / 20.0;
+
     while (!glfwWindowShouldClose(window))
     {
         current_time = glfwGetTime();
+        delta_time = current_time - last_time;
+        tick_accumulator += delta_time;
 
-        game_handle_input(&g, &i);
-        game_update(&g, current_time - last_time);
+        while (tick_accumulator >= tick_interval)
+        {
+            game_handle_input(&g, &i);
+            game_tick(&g);
+            input_end_frame(&i);
+            tick_accumulator -= tick_interval;
+        }
+
         game_draw(&g);
-
-        input_end_frame(&i);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

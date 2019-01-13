@@ -56,7 +56,7 @@ typedef struct
 
 void world_init(world *w);
 void world_handle_input(world *w, input *i);
-void world_update(world *w, double delta_time);
+void world_tick(world *w);
 void world_draw(world *w);
 void world_destroy(world *w);
 

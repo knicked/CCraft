@@ -8,7 +8,6 @@ void game_init(game *g, GLFWwindow *window)
     g->window = window;
     g->window_width = 1280.0f;
     g->window_height = 720.0f;
-    g->print_fps = 0;
     glfwSwapInterval(1);
     g->v_sync = 1;
 
@@ -31,11 +30,6 @@ void game_handle_input(game *g, input *i)
 {
     g->window_width = i->window_width;
     g->window_height = i->window_height;
-
-    if (i->keys_down[GLFW_KEY_F])
-    {
-        g->print_fps = !g->print_fps;
-    }
 
     if (i->keys_down[GLFW_KEY_ESCAPE])
     {
@@ -62,12 +56,9 @@ void game_handle_input(game *g, input *i)
     world_handle_input(&g->w, i);
 }
 
-void game_update(game *g, double delta_time)
+void game_tick(game *g)
 {
-    if (g->print_fps)
-        printf("FPS: %d\n", (int) roundf(1.0f / delta_time));
-
-    world_update(&g->w, delta_time);
+    world_tick(&g->w);
 }
 
 void game_draw(game *g)

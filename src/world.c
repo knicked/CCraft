@@ -137,6 +137,15 @@ void world_init(world *w)
         }
     }
 
+    for (int x = 0; x < WORLD_SIZE; x++)
+    {
+        for (int z = 0; z < WORLD_SIZE; z++)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, w->chunks[x][z].buffer);
+            chunk_build_buffer(&w->chunks[x][z], w, w->chunk_data_buffer);
+        }
+    }
+
     glGenTextures(1, &w->blocks_texture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, w->blocks_texture);
@@ -214,9 +223,9 @@ void world_handle_input(world *w, input *i)
     }
 }
 
-void world_update(world *w, double delta_time)
+void world_tick(world *w)
 {
-    multiply_v3f(&w->player.velocity, &w->player.move_direction, delta_time * 10.0f);
+    multiply_v3f(&w->player.velocity, &w->player.move_direction, 0.5f);
 
     if (w->block_in_range)
     {
