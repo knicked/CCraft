@@ -9,6 +9,7 @@ add_executable(
     src/mesh.c
     src/block.c
     src/chunk.c
+    src/entity.c
     src/world.c
     src/game.c
     src/input.c

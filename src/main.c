@@ -1,6 +1,9 @@
-#include <stdio.h>
-
 #include "game.h"
+
+#include <stdio.h>
+#include <unistd.h>
+
+#define FPS 60.0
 
 int main(int argc, char **argv)
 {
@@ -24,6 +27,7 @@ int main(int argc, char **argv)
     }
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
 
     if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
@@ -44,26 +48,42 @@ int main(int argc, char **argv)
     double delta_time = 0.0;
     double tick_accumulator = 0.0;
     const double tick_interval = 1.0 / 20.0;
+    const double frame_interval = 1.0 / FPS;
+
+    int first_frame = 1;
 
     while (!glfwWindowShouldClose(window))
     {
         current_time = glfwGetTime();
+        if (first_frame)
+        {
+            last_time = current_time - frame_interval;
+            first_frame = 0;
+        }
         delta_time = current_time - last_time;
+
+        if (delta_time < frame_interval && !first_frame)
+        {
+            usleep(frame_interval * 1000000 - delta_time * 1000000);
+            current_time = glfwGetTime();
+            delta_time = current_time - last_time;
+        }
+
         tick_accumulator += delta_time;
 
         while (tick_accumulator >= tick_interval)
         {
-            game_handle_input(&g, &i);
             game_tick(&g);
-            input_end_frame(&i);
             tick_accumulator -= tick_interval;
         }
 
-        game_draw(&g);
+        glfwPollEvents();
+        game_handle_input(&g, &i);
+        input_end_frame(&i);
+
+        game_draw(&g, delta_time);
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
-
         last_time = current_time;
     }
 
@@ -71,5 +91,6 @@ int main(int argc, char **argv)
 
     glfwDestroyWindow(window);
     glfwTerminate();
+
     return 0;
 }

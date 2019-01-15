@@ -225,7 +225,7 @@ void world_handle_input(world *w, input *i)
 
 void world_tick(world *w)
 {
-    multiply_v3f(&w->player.velocity, &w->player.move_direction, 0.5f);
+    multiply_v3f(&w->player.velocity, &w->player.velocity, 0.6f);
 
     if (w->block_in_range)
     {
@@ -233,7 +233,7 @@ void world_tick(world *w)
         {
             world_set_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z, AIR);
         }
-        else if (w->placing_block)
+        if (w->placing_block)
         {
             world_set_block(w,
                 w->selected_block_x + w->selected_face_x,
@@ -244,129 +244,27 @@ void world_tick(world *w)
     w->destroying_block = 0;
     w->placing_block = 0;
 
-    vec3 player_min =
-    {
-        w->player.position.x - w->player.box.size.x / 2.0f,
-        w->player.position.y,
-        w->player.position.z - w->player.box.size.z / 2.0f
-    };
+    vec3 velocity_change = {0.0f};
+    multiply_v3f(&velocity_change, &w->player.move_direction, 0.2f);
+    add_v3(&w->player.velocity, &w->player.velocity, &velocity_change);
+}
 
-    vec3 player_max =
-    {
-        w->player.position.x + w->player.box.size.x / 2.0f,
-        w->player.position.y + w->player.box.size.y,
-        w->player.position.z + w->player.box.size.z / 2.0f
-    };
+void world_draw(world *w, double delta_time)
+{
+    double tick_delta_time = delta_time * 20.0f;
 
-    for (int axis = 0; axis < 3; axis++)
-    {
-        for (int y = roundf(player_min.y) - 1; y <= roundf(player_max.y) + 1; y++)
-        {
-            for (int x = roundf(player_min.x) - 1; x <= roundf(player_max.x) + 1; x++)
-            {
-                for (int z = roundf(player_min.z) - 1; z <= roundf(player_max.z) + 1; z++)
-                {
-                    if (world_get_block(w, x, y, z) == AIR)
-                        continue;
+    vec3 player_delta;
+    multiply_v3f(&player_delta, &w->player.velocity, tick_delta_time);
 
-                    vec3 block_min = 
-                    {
-                        x - block_box.size.x / 2.0f,
-                        y - block_box.size.y / 2.0f,
-                        z - block_box.size.z / 2.0f
-                    };
+    entity_move(&w->player, w, &player_delta);
 
-                    vec3 block_max =
-                    {
-                        x + block_box.size.x / 2.0f,
-                        y + block_box.size.y / 2.0f,
-                        z + block_box.size.z / 2.0f
-                    };
-
-                    if (axis == 0)
-                    {
-                        if (player_min.z < block_max.z && player_max.z > block_min.z && player_min.x < block_max.x && player_max.x > block_min.x)
-                        {
-                            if (w->player.velocity.y > 0.0f && player_max.y <= block_min.y)
-                            {
-                                float difference = block_min.y - player_max.y;
-                                if (difference < w->player.velocity.y)
-                                    w->player.velocity.y = difference;
-                            }
-                            if (w->player.velocity.y < 0.0f && player_min.y >= block_max.y)
-                            {
-                                float difference = block_max.y - player_min.y;
-                                if (difference > w->player.velocity.y)
-                                    w->player.velocity.y = difference;
-                            }
-                        }
-                    }
-                    else if (axis == 1)
-                    {
-                        if (player_min.z < block_max.z && player_max.z > block_min.z && player_min.y < block_max.y && player_max.y > block_min.y)
-                        {
-                            if (w->player.velocity.x > 0.0f && player_max.x <= block_min.x)
-                            {
-                                float difference = block_min.x - player_max.x;
-                                if (difference < w->player.velocity.x)
-                                    w->player.velocity.x = difference;
-                            }
-                            if (w->player.velocity.x < 0.0f && player_min.x >= block_max.x)
-                            {
-                                float difference = block_max.x - player_min.x;
-                                if (difference > w->player.velocity.x)
-                                    w->player.velocity.x = difference;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (player_min.x < block_max.x && player_max.x > block_min.x && player_min.y < block_max.y && player_max.y > block_min.y)
-                        {
-                            if (w->player.velocity.z > 0.0f && player_max.z <= block_min.z)
-                            {
-                                float difference = block_min.z - player_max.z;
-                                if (difference < w->player.velocity.z)
-                                    w->player.velocity.z = difference;
-                            }
-                            if (w->player.velocity.z < 0.0f && player_min.z >= block_max.z)
-                            {
-                                float difference = block_max.z - player_min.z;
-                                if (difference > w->player.velocity.z)
-                                    w->player.velocity.z = difference;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (axis == 0)
-        {
-            player_min.y += w->player.velocity.y;
-            player_max.y += w->player.velocity.y;
-        }
-        else if (axis == 1)
-        {
-            player_min.x += w->player.velocity.x;
-            player_max.x += w->player.velocity.x;
-        }
-        else
-        {
-            player_min.z += w->player.velocity.z;
-            player_max.z += w->player.velocity.z;
-        }
-    }
-
-    add_v3(&w->player.position, &w->player.position, &w->player.velocity);
+    multiply_v3f(&w->player.velocity, &player_delta, 1.0f / tick_delta_time);
 
     w->camera_position = w->player.position;
     w->camera_position.y += 1.62f;
 
     calculate_selected_block(w, 5.0f);
-}
 
-void world_draw(world *w)
-{
     glClearColor(0.6f, 0.7f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

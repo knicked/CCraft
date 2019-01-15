@@ -11,4 +11,6 @@ typedef struct
     bounding_box box;
 } entity;
 
+void entity_move(entity *e, void *w, vec3 *delta_pos);
+
 #endif

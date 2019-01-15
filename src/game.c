@@ -8,8 +8,6 @@ void game_init(game *g, GLFWwindow *window)
     g->window = window;
     g->window_width = 1280.0f;
     g->window_height = 720.0f;
-    glfwSwapInterval(1);
-    g->v_sync = 1;
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -47,12 +45,6 @@ void game_handle_input(game *g, input *i)
         }
     }
 
-    if (i->keys_down[GLFW_KEY_V])
-    {
-        g->v_sync = !g->v_sync;
-        glfwSwapInterval(g->v_sync);
-    }
-
     world_handle_input(&g->w, i);
 }
 
@@ -61,12 +53,12 @@ void game_tick(game *g)
     world_tick(&g->w);
 }
 
-void game_draw(game *g)
+void game_draw(game *g, double delta_time)
 {
     glViewport(0, 0, g->window_width, g->window_height);
     
     g->w.window_width = g->window_width;
     g->w.window_height = g->window_height;
 
-    world_draw(&g->w);
+    world_draw(&g->w, delta_time);
 }
