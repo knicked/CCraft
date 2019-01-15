@@ -109,6 +109,7 @@ void world_init(world *w)
     w->player.box = (bounding_box) {{0.6f, 1.8f, 0.6f}};
     w->player.position = (vec3) {0.0f, 100.5f, 0.0f};
     w->player.velocity = (vec3) {0.0f};
+    w->player.move_direction = (vec3) {0.0f};
     w->selected_block = 1;
     w->destroying_block = 0;
     w->placing_block = 0;
@@ -260,8 +261,9 @@ void world_draw(world *w, double delta_time)
 
     multiply_v3f(&w->player.velocity, &player_delta, 1.0f / tick_delta_time);
 
-    w->camera_position = w->player.position;
-    w->camera_position.y += 1.62f;
+    w->camera_position.x = w->player.position.x;
+    w->camera_position.z = w->player.position.z;
+    w->camera_position.y = w->player.position.y + 1.62f;
 
     calculate_selected_block(w, 5.0f);
 
