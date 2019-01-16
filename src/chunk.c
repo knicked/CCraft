@@ -42,7 +42,7 @@ void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer)
     c->dirty = 0;
 }
 
-void chunk_init(chunk *c, int x, int z, GLuint position_location, GLuint tex_coord_location)
+void chunk_init(chunk *c, int x, int z, GLuint position_location, GLuint normal_location, GLuint tex_coord_location)
 {
     glGenBuffers(1, &c->buffer);
     glBindBuffer(GL_ARRAY_BUFFER, c->buffer);
@@ -50,9 +50,11 @@ void chunk_init(chunk *c, int x, int z, GLuint position_location, GLuint tex_coo
     glGenVertexArrays(1, &c->vao);
     glBindVertexArray(c->vao);
     glEnableVertexAttribArray(position_location);
-    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, NULL);
+    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, NULL);
+    glEnableVertexAttribArray(normal_location);
+    glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (GLvoid *) (sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(tex_coord_location);
-    glVertexAttribPointer(tex_coord_location, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, (GLvoid *) (sizeof(GLfloat) * 3));
+    glVertexAttribPointer(tex_coord_location, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (GLvoid *) (sizeof(GLfloat) * 6));
 
     static const int GRASS_LEVEL = 100;
 

@@ -117,6 +117,7 @@ void world_init(world *w)
 
     w->blocks_program = load_program("res/shaders/blocks.vsh", "res/shaders/blocks.fsh");
     w->blocks_position_location = glGetAttribLocation(w->blocks_program, "position");
+    w->blocks_normal_location = glGetAttribLocation(w->blocks_program, "normal");
     w->blocks_tex_coord_location = glGetAttribLocation(w->blocks_program, "texCoord");
     w->blocks_model_location = glGetUniformLocation(w->blocks_program, "model");
     w->blocks_view_location = glGetUniformLocation(w->blocks_program, "view");
@@ -134,7 +135,7 @@ void world_init(world *w)
         w->chunks[x] = malloc(WORLD_SIZE * sizeof(chunk));
         for (int z = 0; z < WORLD_SIZE; z++)
         {
-            chunk_init(&w->chunks[x][z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2, w->blocks_position_location, w->blocks_tex_coord_location);
+            chunk_init(&w->chunks[x][z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2, w->blocks_position_location, w->blocks_normal_location, w->blocks_tex_coord_location);
         }
     }
 

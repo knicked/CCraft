@@ -40,6 +40,7 @@ typedef struct
     GLuint blocks_texture;
     GLuint blocks_program;
     GLuint blocks_position_location;
+    GLuint blocks_normal_location;
     GLuint blocks_tex_coord_location;
     GLuint blocks_model_location;
     GLuint blocks_view_location;

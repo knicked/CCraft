@@ -34,6 +34,7 @@ int block_is_opaque(block_id block)
         case FLOWING_WATER:
         case STILL_WATER:
         case LEAVES:
+        case SAPLING:
         case GLASS:
             return 0;
             break;

@@ -7,6 +7,7 @@
 typedef struct
 {
     vec3 position;
+    vec3 normal;
     vec2 tex_coord;
 } block_vertex;
 
