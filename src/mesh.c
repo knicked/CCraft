@@ -165,9 +165,9 @@ void make_selection_box(vec3 *data, int x, int y, int z)
 
     for (int i = 0; i < 24; i++)
     {
-        data->x = 1.001f * positions[indices[i]].x + x;
-        data->y = 1.001f * positions[indices[i]].y + y;
-        data->z = 1.001f * positions[indices[i]].z + z;
+        data->x = positions[indices[i]].x + x;
+        data->y = positions[indices[i]].y + y;
+        data->z = positions[indices[i]].z + z;
         data++;
     }
 }
