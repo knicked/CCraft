@@ -12,7 +12,7 @@
 
 typedef struct
 {
-    chunk *chunks[WORLD_SIZE];
+    chunk *chunks;
 
     float window_width;
     float window_height;

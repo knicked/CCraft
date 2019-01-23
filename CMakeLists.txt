@@ -6,6 +6,7 @@ add_executable(
     CCraft
     src/glmath.c
     src/util.c
+    src/bounding_box.c
     src/mesh.c
     src/block.c
     src/chunk.c

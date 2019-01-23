@@ -110,6 +110,8 @@ void world_init(world *w)
     w->player.position = (vec3) {0.0f, 100.5f, 0.0f};
     w->player.velocity = (vec3) {0.0f};
     w->player.move_direction = (vec3) {0.0f};
+    w->player.jumping = 0;
+    w->player.on_ground = 0;
     w->selected_block = 1;
     w->destroying_block = 0;
     w->placing_block = 0;
@@ -130,12 +132,13 @@ void world_init(world *w)
 
     w->chunk_data_buffer = malloc(36 * CHUNK_SIZE * CHUNK_SIZE * WORLD_HEIGHT * sizeof(block_vertex));
 
+    w->chunks = malloc(WORLD_SIZE * WORLD_SIZE * sizeof(chunk));
+
     for (int x = 0; x < WORLD_SIZE; x++)
     {
-        w->chunks[x] = malloc(WORLD_SIZE * sizeof(chunk));
         for (int z = 0; z < WORLD_SIZE; z++)
         {
-            chunk_init(&w->chunks[x][z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2, w->blocks_position_location, w->blocks_normal_location, w->blocks_tex_coord_location);
+            chunk_init(&w->chunks[x * WORLD_SIZE + z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2, w->blocks_position_location, w->blocks_normal_location, w->blocks_tex_coord_location);
         }
     }
 
@@ -143,8 +146,8 @@ void world_init(world *w)
     {
         for (int z = 0; z < WORLD_SIZE; z++)
         {
-            glBindBuffer(GL_ARRAY_BUFFER, w->chunks[x][z].buffer);
-            chunk_build_buffer(&w->chunks[x][z], w, w->chunk_data_buffer);
+            glBindBuffer(GL_ARRAY_BUFFER, w->chunks[x * WORLD_SIZE + z].buffer);
+            chunk_build_buffer(&w->chunks[x * WORLD_SIZE + z], w, w->chunk_data_buffer);
         }
     }
 
@@ -177,10 +180,7 @@ void world_handle_input(world *w, input *i)
 
         w->player.move_direction = (vec3) {0.0f};
 
-        if (i->keys[GLFW_KEY_SPACE])
-            w->player.move_direction.y += 1.0f;
-        if (i->keys[GLFW_KEY_LEFT_SHIFT])
-            w->player.move_direction.y -= 1.0f;
+        w->player.jumping = i->keys[GLFW_KEY_SPACE];
 
         if (i->keys[GLFW_KEY_W])
         {
@@ -220,14 +220,21 @@ void world_handle_input(world *w, input *i)
         }
         if (i->mouse_buttons_down[GLFW_MOUSE_BUTTON_RIGHT])
         {
-            w->placing_block = 1;      
+            w->placing_block = 1;
         }
     }
 }
 
 void world_tick(world *w)
 {
-    multiply_v3f(&w->player.velocity, &w->player.velocity, 0.6f);
+    w->player.velocity.y -= 0.08f;
+    w->player.velocity.y *= 0.98f;
+
+    if (w->player.jumping && w->player.on_ground)
+        w->player.velocity.y += 0.5f;
+
+    w->player.velocity.x *= w->player.on_ground ? 0.6f : 0.91f;
+    w->player.velocity.z *= w->player.on_ground ? 0.6f : 0.91f;
 
     if (w->block_in_range)
     {
@@ -247,7 +254,7 @@ void world_tick(world *w)
     w->placing_block = 0;
 
     vec3 velocity_change = {0.0f};
-    multiply_v3f(&velocity_change, &w->player.move_direction, 0.2f);
+    multiply_v3f(&velocity_change, &w->player.move_direction, w->player.on_ground ? 0.1f : 0.02f);
     add_v3(&w->player.velocity, &w->player.velocity, &velocity_change);
 }
 
@@ -255,10 +262,29 @@ void world_draw(world *w, double delta_time)
 {
     double tick_delta_time = delta_time * 20.0f;
 
+    bounding_box_update(&w->player.box, &w->player.position);
+
     vec3 player_delta;
     multiply_v3f(&player_delta, &w->player.velocity, tick_delta_time);
-
     entity_move(&w->player, w, &player_delta);
+
+    w->player.on_ground = 0;
+    for (int x = roundf(w->player.box.min.x); x <= roundf(w->player.box.max.x); x++)
+    {
+        for (int z = roundf(w->player.box.min.z); z <= roundf(w->player.box.max.z); z++)
+        {
+            if (world_get_block(w, x, roundf(w->player.position.y - 0.5f), z) == AIR)
+                continue;
+            vec3 block_position = {x, roundf(w->player.position.y) - 1.5f, z};
+            bounding_box_update(&block_box, &block_position);
+            if (is_touching(&w->player.box, &block_box))
+            {
+                w->player.on_ground = 1;
+                break;
+            }
+        }
+        if (w->player.on_ground) break;
+    }
 
     multiply_v3f(&w->player.velocity, &player_delta, 1.0f / tick_delta_time);
 
@@ -294,7 +320,7 @@ void world_draw(world *w, double delta_time)
     {
         for (int z = -WORLD_SIZE / 2; z < WORLD_SIZE - WORLD_SIZE / 2; z++)
         {
-            chunk *c = &w->chunks[x + WORLD_SIZE / 2][z + WORLD_SIZE / 2];
+            chunk *c = &w->chunks[(x + WORLD_SIZE / 2) * WORLD_SIZE + z + WORLD_SIZE / 2];
             vec3 chunk_translation = {x * CHUNK_SIZE, 0.0f, z * CHUNK_SIZE};
             translate(&w->blocks_model, &chunk_translation);
             glUniformMatrix4fv(w->blocks_model_location, 1, GL_FALSE, w->blocks_model.value);
@@ -332,10 +358,10 @@ void world_destroy(world *w)
     {
         for (int z = 0; z < WORLD_SIZE; z++)
         {
-            chunk_destroy(&w->chunks[x][z]);
+            chunk_destroy(&w->chunks[x * WORLD_SIZE + z]);
         }
-        free(w->chunks[x]);
     }
+    free(w->chunks);
     free(w->chunk_data_buffer);
 
     glDeleteBuffers(1, &w->selection_box_buffer);
@@ -352,14 +378,14 @@ block_id world_get_block(world *w, int x, int y, int z)
     if (chunk_x < 0 || chunk_x >= WORLD_SIZE || chunk_z < 0 || chunk_z >= WORLD_SIZE || y < 0 || y >= WORLD_HEIGHT)
         return AIR;
     else
-        return w->chunks[chunk_x][chunk_z].blocks[WORLD_TO_CHUNK(x)][y][WORLD_TO_CHUNK(z)];
+        return w->chunks[chunk_x * WORLD_SIZE + chunk_z].blocks[WORLD_TO_CHUNK(x)][y][WORLD_TO_CHUNK(z)];
 }
 
 void world_set_block(world *w, int x, int y, int z, block_id new_block)
 {
     size_t chunk_x = CHUNK_FROM_WORLD_COORDS(x);
     size_t chunk_z = CHUNK_FROM_WORLD_COORDS(z);
-    chunk *c = &w->chunks[chunk_x][chunk_z];
+    chunk *c = &w->chunks[chunk_x * WORLD_SIZE + chunk_z];
     
     size_t block_x = WORLD_TO_CHUNK(x);
     size_t block_z = WORLD_TO_CHUNK(z);
@@ -368,10 +394,10 @@ void world_set_block(world *w, int x, int y, int z, block_id new_block)
     if (*b != new_block)
     {
         *b = new_block;
-        if (block_x == 0) w->chunks[chunk_x == 0 ? chunk_x : chunk_x - 1][chunk_z].dirty = 1;
-        else if (block_x == CHUNK_SIZE - 1) w->chunks[chunk_x == WORLD_SIZE - 1 ? chunk_x : chunk_x + 1][chunk_z].dirty = 1;
-        if (block_z == 0) w->chunks[chunk_x][chunk_z == 0 ? chunk_z : chunk_z - 1].dirty = 1;
-        else if (block_z == CHUNK_SIZE - 1) w->chunks[chunk_x][chunk_z == WORLD_SIZE - 1 ? chunk_z : chunk_z + 1].dirty = 1;
+        if (block_x == 0) w->chunks[(chunk_x == 0 ? chunk_x : chunk_x - 1) * WORLD_SIZE + chunk_z].dirty = 1;
+        else if (block_x == CHUNK_SIZE - 1) w->chunks[(chunk_x == WORLD_SIZE - 1 ? chunk_x : chunk_x + 1) * WORLD_SIZE + chunk_z].dirty = 1;
+        if (block_z == 0) w->chunks[chunk_x * WORLD_SIZE + (chunk_z == 0 ? chunk_z : chunk_z - 1)].dirty = 1;
+        else if (block_z == CHUNK_SIZE - 1) w->chunks[chunk_x * WORLD_SIZE + (chunk_z == WORLD_SIZE - 1 ? chunk_z : chunk_z + 1)].dirty = 1;
         c->dirty = 1;
     }
 }

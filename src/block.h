@@ -33,7 +33,7 @@ typedef struct
 } block_data;
 
 extern const block_data blocks[256];
-extern const bounding_box block_box;
+extern bounding_box block_box;
 
 int block_is_opaque(block_id block);
 
