@@ -27,6 +27,7 @@ void normalize(vec3 *v);
 
 void identity(mat4 *m);
 void translate(mat4 *m, vec3 *v);
+void translate_v2(mat4 *m, vec2 *v);
 void rotate(mat4 *m, vec3 *axis, float angle);
 
 void add_v3(vec3 *v, vec3 *v1, vec3 *v2);
@@ -40,5 +41,6 @@ void multiply_v2f(vec2 *v, vec2 *v1, float v2);
 
 void frustum(mat4 *m, float left, float right, float bottom, float top, float znear, float zfar);
 void perspective(mat4 *m, float fov, float aspect, float znear, float zfar);
+void ortho(mat4 *m, float left, float right, float bottom, float top, float near, float far);
 
 #endif

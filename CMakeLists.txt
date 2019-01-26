@@ -12,6 +12,7 @@ add_executable(
     src/chunk.c
     src/entity.c
     src/world.c
+    src/gui.c
     src/game.c
     src/input.c
     src/main.c

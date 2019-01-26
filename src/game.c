@@ -17,11 +17,13 @@ void game_init(game *g, GLFWwindow *window)
     glEnable(GL_LINE_SMOOTH);
 
     world_init(&g->w);
+    gui_init(&g->gui);
 }
 
 void game_destroy(game *g)
 {
     world_destroy(&g->w);
+    gui_destroy(&g->gui);
 }
 
 void game_handle_input(game *g, input *i)
@@ -46,6 +48,7 @@ void game_handle_input(game *g, input *i)
     }
 
     world_handle_input(&g->w, i);
+    gui_handle_input(&g->gui, i);
 }
 
 void game_tick(game *g)
@@ -56,9 +59,7 @@ void game_tick(game *g)
 void game_draw(game *g, double delta_time)
 {
     glViewport(0, 0, g->window_width, g->window_height);
-    
-    g->w.window_width = g->window_width;
-    g->w.window_height = g->window_height;
 
     world_draw(&g->w, delta_time);
+    gui_draw(&g->gui);
 }

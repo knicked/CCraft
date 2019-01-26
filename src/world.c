@@ -120,7 +120,7 @@ void world_init(world *w)
     w->blocks_program = load_program("res/shaders/blocks.vsh", "res/shaders/blocks.fsh");
     w->blocks_position_location = glGetAttribLocation(w->blocks_program, "position");
     w->blocks_normal_location = glGetAttribLocation(w->blocks_program, "normal");
-    w->blocks_tex_coord_location = glGetAttribLocation(w->blocks_program, "texCoord");
+    w->blocks_tex_coord_location = glGetAttribLocation(w->blocks_program, "tex_coord");
     w->blocks_model_location = glGetUniformLocation(w->blocks_program, "model");
     w->blocks_view_location = glGetUniformLocation(w->blocks_program, "view");
     w->blocks_projection_location = glGetUniformLocation(w->blocks_program, "projection");
@@ -152,7 +152,6 @@ void world_init(world *w)
     }
 
     glGenTextures(1, &w->blocks_texture);
-    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, w->blocks_texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -163,13 +162,16 @@ void world_init(world *w)
 
     glGenBuffers(1, &w->selection_box_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, w->selection_box_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * 24, NULL, GL_STREAM_DRAW);
-    glVertexAttribPointer(w->lines_position_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, NULL);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * 24, NULL, GL_STREAM_DRAW);
+    glVertexAttribPointer(w->lines_position_location, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), NULL);
     glEnableVertexAttribArray(w->lines_position_location);
 }
 
 void world_handle_input(world *w, input *i)
 {
+    w->window_width = i->window_width;
+    w->window_height = i->window_height;
+
     if (i->mouse_locked)
     {
         w->camera_rotation.x += i->mouse_delta.y * i->mouse_sensitivity;
@@ -312,6 +314,7 @@ void world_draw(world *w, double delta_time)
     perspective(&w->world_projection, 85.0f, w->window_width / w->window_height, 0.05f, 1000.0f);
 
     glUseProgram(w->blocks_program);
+    glBindTexture(GL_TEXTURE_2D, w->blocks_texture);
 
     glUniformMatrix4fv(w->blocks_projection_location, 1, GL_FALSE, w->world_projection.value);
     glUniformMatrix4fv(w->blocks_view_location, 1, GL_FALSE, w->world_view.value);

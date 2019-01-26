@@ -24,6 +24,14 @@ void translate(mat4 *m, vec3 *v)
     m->value[12] = v->x; m->value[13] = v->y; m->value[14] = v->z; m->value[15] = 1.0f;
 }
 
+void translate_v2(mat4 *m, vec2 *v)
+{
+    m->value[0]  = 1.0f; m->value[1]  = 0.0f; m->value[2]  = 0.0f; m->value[3]  = 0.0f;
+    m->value[4]  = 0.0f; m->value[5]  = 1.0f; m->value[6]  = 0.0f; m->value[7]  = 0.0f;
+    m->value[8]  = 0.0f; m->value[9]  = 0.0f; m->value[10] = 1.0f; m->value[11] = 0.0f;
+    m->value[12] = v->x; m->value[13] = v->y; m->value[14] = 0.0f; m->value[15] = 1.0f;
+}
+
 void add_v3(vec3 *v, vec3 *v1, vec3 *v2)
 {
     v->x = v1->x + v2->x;
@@ -129,4 +137,24 @@ void perspective(mat4 *m, float fov, float aspect, float znear, float zfar)
     ymax = znear * tanf(fov * PI / 360.0f);
     xmax = ymax * aspect;
     frustum(m, -xmax, xmax, -ymax, ymax, znear, zfar);
+}
+
+void ortho(mat4 *m, float left, float right, float bottom, float top, float near, float far)
+{
+    m->value[0] = 2 / (right - left);
+    m->value[1] = 0;
+    m->value[2] = 0;
+    m->value[3] = 0;
+    m->value[4] = 0;
+    m->value[5] = 2 / (top - bottom);
+    m->value[6] = 0;
+    m->value[7] = 0;
+    m->value[8] = 0;
+    m->value[9] = 0;
+    m->value[10] = -2 / (far - near);
+    m->value[11] = 0;
+    m->value[12] = -(right + left) / (right - left);
+    m->value[13] = -(top + bottom) / (top - bottom);
+    m->value[14] = -(far + near) / (far - near);
+    m->value[15] = 1;
 }

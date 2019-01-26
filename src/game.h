@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "world.h"
 #include "input.h"
+#include "gui.h"
 
 typedef struct
 {
@@ -12,6 +13,7 @@ typedef struct
     float window_height;
 
     world w;
+    gui gui;
 } game;
 
 void game_init(game *g, GLFWwindow *window);
