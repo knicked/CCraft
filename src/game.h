@@ -1,9 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "mesh.h"
 #include "world.h"
-#include "input.h"
 #include "gui.h"
 
 typedef struct

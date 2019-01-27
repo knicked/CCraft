@@ -45,6 +45,7 @@ typedef struct
     GLuint blocks_model_location;
     GLuint blocks_view_location;
     GLuint blocks_projection_location;
+    GLuint blocks_texture_location;
 
     GLuint lines_program;
     GLuint lines_position_location;

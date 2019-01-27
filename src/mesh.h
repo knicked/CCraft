@@ -3,7 +3,6 @@
 
 #include "glmath.h"
 #include "block.h"
-#include "gui.h"
 
 typedef struct
 {

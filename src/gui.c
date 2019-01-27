@@ -20,7 +20,7 @@ void sprite_init(gui_sprite *sprite, gui *g, vec2 tex_position)
     {
         {{-sprite->size.x * 0.5f, -sprite->size.y * 0.5f}, {tex_position.x / 256.0f, (tex_position.y + sprite->size.y) / 256.0f}},
         {{sprite->size.x * 0.5f, -sprite->size.y * 0.5f}, {(tex_position.x + sprite->size.x) / 256.0f, (tex_position.y + sprite->size.y) / 256.0f}},
-        {{sprite->size.x * 0.5f, sprite->size.y * 0.5f}, {(tex_position.x + sprite->size.x) / 256.0f, tex_position.y}},
+        {{sprite->size.x * 0.5f, sprite->size.y * 0.5f}, {(tex_position.x + sprite->size.x) / 256.0f, tex_position.y / 256.0f}},
         {{-sprite->size.x * 0.5f, sprite->size.y * 0.5f}, {tex_position.x / 256.0f, tex_position.y / 256.0f}},
     };
     glBufferData(GL_ARRAY_BUFFER, sizeof(buffer_data), buffer_data, GL_STATIC_DRAW);
@@ -43,17 +43,21 @@ void sprite_destroy(gui_sprite *sprite)
     glDeleteVertexArrays(1, &sprite->vao);
 }
 
-void gui_init(gui *g)
+void gui_init(gui *g, world *w)
 {
     glLogicOp(GL_INVERT);
+
+    g->w = w;
 
     g->gui_program = load_program("res/shaders/gui.vsh", "res/shaders/gui.fsh");
     g->gui_position_location = glGetAttribLocation(g->gui_program, "position");
     g->gui_tex_coord_location = glGetAttribLocation(g->gui_program, "tex_coord");
     g->gui_projection_location = glGetUniformLocation(g->gui_program, "projection");
     g->gui_model_location = glGetUniformLocation(g->gui_program, "model");
+    g->gui_texture_location = glGetUniformLocation(g->gui_program, "gui_texture");
 
     glGenTextures(1, &g->gui_texture);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, g->gui_texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -63,9 +67,11 @@ void gui_init(gui *g)
     g->crosshair_sprite.size = (vec2) {15.0f, 15.0f};
     sprite_init(&g->crosshair_sprite, g, (vec2) {240.0f, 0.0f});
 
-    g->hotbar_sprite.position = (vec2) {0.0f, -50.0f};
     g->hotbar_sprite.size = (vec2) {182.0f, 22.0f};
     sprite_init(&g->hotbar_sprite, g, (vec2) {0.0f, 0.0f});
+
+    g->hotbar_selection_sprite.size = (vec2) {24.0f, 24.0f};
+    sprite_init(&g->hotbar_selection_sprite, g, (vec2) {0.0f, 22.0f});
 }
 
 void gui_handle_input(gui *g, input *i)
@@ -77,7 +83,7 @@ void gui_handle_input(gui *g, input *i)
 void gui_draw(gui *g)
 {
     glUseProgram(g->gui_program);
-    glBindTexture(GL_TEXTURE_2D, g->gui_texture);
+    glUniform1i(g->gui_texture_location, 1);
 
     int scale = 1 + 2 * (g->window_height / 720);
 
@@ -86,19 +92,22 @@ void gui_draw(gui *g)
 
     glUniformMatrix4fv(g->gui_projection_location, 1, GL_FALSE, projection.value);
 
-    g->hotbar_sprite.position.y = -g->window_height / 2.0f / scale + g->hotbar_sprite.size.y / 2.0f;
-
     glEnable(GL_COLOR_LOGIC_OP);
     sprite_draw(&g->crosshair_sprite, g);
     glDisable(GL_COLOR_LOGIC_OP);
 
+    g->hotbar_sprite.position.y = -g->window_height / 2.0f / scale + g->hotbar_sprite.size.y / 2.0f;
     sprite_draw(&g->hotbar_sprite, g);
+    g->hotbar_selection_sprite.position.y = -g->window_height / 2.0f / scale + g->hotbar_sprite.size.y / 2.0f;
+    g->hotbar_selection_sprite.position.x = (g->w->selected_block - 1) % 9 * 20.0f - 4 * 20.0f;
+    sprite_draw(&g->hotbar_selection_sprite, g);
 }
 
 void gui_destroy(gui *g)
 {
     sprite_destroy(&g->crosshair_sprite);
     sprite_destroy(&g->hotbar_sprite);
+    sprite_destroy(&g->hotbar_selection_sprite);
     glDeleteTextures(1, &g->gui_texture);
     glDeleteProgram(g->gui_program);
 }

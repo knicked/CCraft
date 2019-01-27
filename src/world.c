@@ -124,6 +124,7 @@ void world_init(world *w)
     w->blocks_model_location = glGetUniformLocation(w->blocks_program, "model");
     w->blocks_view_location = glGetUniformLocation(w->blocks_program, "view");
     w->blocks_projection_location = glGetUniformLocation(w->blocks_program, "projection");
+    w->blocks_texture_location = glGetUniformLocation(w->blocks_program, "blocks_texture");
 
     w->lines_program = load_program("res/shaders/lines.vsh", "res/shaders/lines.fsh");
     w->lines_position_location = glGetAttribLocation(w->lines_program, "position");
@@ -152,6 +153,7 @@ void world_init(world *w)
     }
 
     glGenTextures(1, &w->blocks_texture);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, w->blocks_texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -213,6 +215,7 @@ void world_handle_input(world *w, input *i)
         if (i->scroll_delta != 0.0)
         {
             w->selected_block += i->scroll_delta;
+            if (w->selected_block == 0) w->selected_block++;
             printf("Selected block of ID %d\n", w->selected_block);
         }
 
@@ -314,7 +317,7 @@ void world_draw(world *w, double delta_time)
     perspective(&w->world_projection, 85.0f, w->window_width / w->window_height, 0.05f, 1000.0f);
 
     glUseProgram(w->blocks_program);
-    glBindTexture(GL_TEXTURE_2D, w->blocks_texture);
+    glUniform1i(w->blocks_texture_location, 0);
 
     glUniformMatrix4fv(w->blocks_projection_location, 1, GL_FALSE, w->world_projection.value);
     glUniformMatrix4fv(w->blocks_view_location, 1, GL_FALSE, w->world_view.value);

@@ -17,7 +17,7 @@ void game_init(game *g, GLFWwindow *window)
     glEnable(GL_LINE_SMOOTH);
 
     world_init(&g->w);
-    gui_init(&g->gui);
+    gui_init(&g->gui, &g->w);
 }
 
 void game_destroy(game *g)
