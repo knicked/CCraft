@@ -24,12 +24,7 @@ typedef struct
 
     world *w;
 
-    GLuint gui_program;
-    GLuint gui_position_location;
-    GLuint gui_tex_coord_location;
-    GLuint gui_projection_location;
-    GLuint gui_model_location;
-    GLuint gui_texture_location;
+    shader gui_shader;
 
     GLuint gui_texture;
 

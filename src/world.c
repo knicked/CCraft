@@ -117,19 +117,19 @@ void world_init(world *w)
     w->placing_block = 0;
     w->camera_rotation = (vec2) {0.0f};
 
-    w->blocks_program = load_program("res/shaders/blocks.vsh", "res/shaders/blocks.fsh");
-    w->blocks_position_location = glGetAttribLocation(w->blocks_program, "position");
-    w->blocks_normal_location = glGetAttribLocation(w->blocks_program, "normal");
-    w->blocks_tex_coord_location = glGetAttribLocation(w->blocks_program, "tex_coord");
-    w->blocks_model_location = glGetUniformLocation(w->blocks_program, "model");
-    w->blocks_view_location = glGetUniformLocation(w->blocks_program, "view");
-    w->blocks_projection_location = glGetUniformLocation(w->blocks_program, "projection");
-    w->blocks_texture_location = glGetUniformLocation(w->blocks_program, "blocks_texture");
+    w->blocks_shader.program = load_program("res/shaders/blocks.vsh", "res/shaders/blocks.fsh");
+    w->blocks_shader.position_location = glGetAttribLocation(w->blocks_shader.program, "position");
+    w->blocks_shader.normal_location = glGetAttribLocation(w->blocks_shader.program, "normal");
+    w->blocks_shader.tex_coord_location = glGetAttribLocation(w->blocks_shader.program, "tex_coord");
+    w->blocks_shader.model_location = glGetUniformLocation(w->blocks_shader.program, "model");
+    w->blocks_shader.view_location = glGetUniformLocation(w->blocks_shader.program, "view");
+    w->blocks_shader.projection_location = glGetUniformLocation(w->blocks_shader.program, "projection");
+    w->blocks_shader.texture_location = glGetUniformLocation(w->blocks_shader.program, "blocks_texture");
 
-    w->lines_program = load_program("res/shaders/lines.vsh", "res/shaders/lines.fsh");
-    w->lines_position_location = glGetAttribLocation(w->lines_program, "position");
-    w->lines_view_location = glGetUniformLocation(w->lines_program, "view");
-    w->lines_projection_location = glGetUniformLocation(w->lines_program, "projection");
+    w->lines_shader.program = load_program("res/shaders/lines.vsh", "res/shaders/lines.fsh");
+    w->lines_shader.position_location = glGetAttribLocation(w->lines_shader.program, "position");
+    w->lines_shader.view_location = glGetUniformLocation(w->lines_shader.program, "view");
+    w->lines_shader.projection_location = glGetUniformLocation(w->lines_shader.program, "projection");
 
     w->chunk_data_buffer = malloc(36 * CHUNK_SIZE * CHUNK_SIZE * WORLD_HEIGHT * sizeof(block_vertex));
 
@@ -139,7 +139,7 @@ void world_init(world *w)
     {
         for (int z = 0; z < WORLD_SIZE; z++)
         {
-            chunk_init(&w->chunks[x * WORLD_SIZE + z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2, w->blocks_position_location, w->blocks_normal_location, w->blocks_tex_coord_location);
+            chunk_init(&w->chunks[x * WORLD_SIZE + z], x - WORLD_SIZE / 2, z - WORLD_SIZE / 2, &w->blocks_shader);
         }
     }
 
@@ -147,7 +147,7 @@ void world_init(world *w)
     {
         for (int z = 0; z < WORLD_SIZE; z++)
         {
-            glBindBuffer(GL_ARRAY_BUFFER, w->chunks[x * WORLD_SIZE + z].buffer);
+            glBindBuffer(GL_ARRAY_BUFFER, w->chunks[x * WORLD_SIZE + z].vbo);
             chunk_build_buffer(&w->chunks[x * WORLD_SIZE + z], w, w->chunk_data_buffer);
         }
     }
@@ -165,8 +165,8 @@ void world_init(world *w)
     glGenBuffers(1, &w->selection_box_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, w->selection_box_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * 24, NULL, GL_STREAM_DRAW);
-    glVertexAttribPointer(w->lines_position_location, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), NULL);
-    glEnableVertexAttribArray(w->lines_position_location);
+    glVertexAttribPointer(w->lines_shader.position_location, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), NULL);
+    glEnableVertexAttribArray(w->lines_shader.position_location);
 }
 
 void world_handle_input(world *w, input *i)
@@ -316,11 +316,11 @@ void world_draw(world *w, double delta_time)
 
     perspective(&w->world_projection, 85.0f, w->window_width / w->window_height, 0.05f, 1000.0f);
 
-    glUseProgram(w->blocks_program);
-    glUniform1i(w->blocks_texture_location, 0);
+    glUseProgram(w->blocks_shader.program);
+    glUniform1i(w->blocks_shader.texture_location, 0);
 
-    glUniformMatrix4fv(w->blocks_projection_location, 1, GL_FALSE, w->world_projection.value);
-    glUniformMatrix4fv(w->blocks_view_location, 1, GL_FALSE, w->world_view.value);
+    glUniformMatrix4fv(w->blocks_shader.projection_location, 1, GL_FALSE, w->world_projection.value);
+    glUniformMatrix4fv(w->blocks_shader.view_location, 1, GL_FALSE, w->world_view.value);
 
     for (int x = -WORLD_SIZE / 2; x < WORLD_SIZE - WORLD_SIZE / 2; x++)
     {
@@ -329,10 +329,10 @@ void world_draw(world *w, double delta_time)
             chunk *c = &w->chunks[(x + WORLD_SIZE / 2) * WORLD_SIZE + z + WORLD_SIZE / 2];
             vec3 chunk_translation = {x * CHUNK_SIZE, 0.0f, z * CHUNK_SIZE};
             translate(&w->blocks_model, &chunk_translation);
-            glUniformMatrix4fv(w->blocks_model_location, 1, GL_FALSE, w->blocks_model.value);
+            glUniformMatrix4fv(w->blocks_shader.model_location, 1, GL_FALSE, w->blocks_model.value);
             if (c->dirty)
             {
-                glBindBuffer(GL_ARRAY_BUFFER, c->buffer);
+                glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
                 chunk_build_buffer(c, w, w->chunk_data_buffer);
             }
             glBindVertexArray(c->vao);
@@ -342,10 +342,10 @@ void world_draw(world *w, double delta_time)
 
     if (w->block_in_range)
     {
-        glUseProgram(w->lines_program);
+        glUseProgram(w->lines_shader.program);
 
-        glUniformMatrix4fv(w->lines_projection_location, 1, GL_FALSE, w->world_projection.value);
-        glUniformMatrix4fv(w->lines_view_location, 1, GL_FALSE, w->world_view.value);
+        glUniformMatrix4fv(w->lines_shader.projection_location, 1, GL_FALSE, w->world_projection.value);
+        glUniformMatrix4fv(w->lines_shader.view_location, 1, GL_FALSE, w->world_view.value);
 
         vec3 data[24];
         make_selection_box(data, w->selected_block_x, w->selected_block_y, w->selected_block_z);
@@ -374,7 +374,7 @@ void world_destroy(world *w)
     glDeleteVertexArrays(1, &w->selection_box_vao);   
 
     glDeleteTextures(1, &w->blocks_texture);
-    glDeleteProgram(w->blocks_program);
+    glDeleteProgram(w->blocks_shader.program);
 }
 
 block_id world_get_block(world *w, int x, int y, int z)

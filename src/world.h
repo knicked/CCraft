@@ -4,6 +4,7 @@
 #include "chunk.h"
 #include "entity.h"
 #include "input.h"
+#include "shader.h"
 
 #define WORLD_SIZE 32
 
@@ -38,19 +39,9 @@ typedef struct
     mat4 world_projection;
 
     GLuint blocks_texture;
-    GLuint blocks_program;
-    GLuint blocks_position_location;
-    GLuint blocks_normal_location;
-    GLuint blocks_tex_coord_location;
-    GLuint blocks_model_location;
-    GLuint blocks_view_location;
-    GLuint blocks_projection_location;
-    GLuint blocks_texture_location;
+    shader blocks_shader;
 
-    GLuint lines_program;
-    GLuint lines_position_location;
-    GLuint lines_view_location;
-    GLuint lines_projection_location;
+    shader lines_shader;
     
     GLuint selection_box_vao;
     GLuint selection_box_buffer;
