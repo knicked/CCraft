@@ -214,9 +214,9 @@ void world_handle_input(world *w, input *i)
 
         if (i->scroll_delta != 0.0)
         {
-            w->selected_block += i->scroll_delta;
-            if (w->selected_block == 0) w->selected_block++;
-            printf("Selected block of ID %d\n", w->selected_block);
+            w->selected_block -= i->scroll_delta;
+            if (w->selected_block == 0) w->selected_block = 3 * 9;
+            if (w->selected_block == 3 * 9 + 1) w->selected_block = 1;
         }
 
         if (i->mouse_buttons_down[GLFW_MOUSE_BUTTON_LEFT])
@@ -302,17 +302,13 @@ void world_draw(world *w, double delta_time)
     glClearColor(0.6f, 0.7f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    mat4 temp;
-
     vec3 view_translation;
     multiply_v3f(&view_translation, &w->camera_position, -1.0f);
     translate(&w->world_view, &view_translation);
-    static vec3 axis_up = {0.0f, 1.0f, 0.0f};
-    static vec3 axis_right = {1.0f, 0.0f, 0.0f};
-    rotate(&temp, &axis_up, RADIANS(w->camera_rotation.y));
-    multiply(&w->world_view, &temp, &w->world_view);
-    rotate(&temp, &axis_right, RADIANS(w->camera_rotation.x));
-    multiply(&w->world_view, &temp, &w->world_view);
+    rotate(&TEMP_MAT, &AXIS_UP, RADIANS(w->camera_rotation.y));
+    multiply(&w->world_view, &TEMP_MAT, &w->world_view);
+    rotate(&TEMP_MAT, &AXIS_RIGHT, RADIANS(w->camera_rotation.x));
+    multiply(&w->world_view, &TEMP_MAT, &w->world_view);
 
     perspective(&w->world_projection, 85.0f, w->window_width / w->window_height, 0.05f, 1000.0f);
 

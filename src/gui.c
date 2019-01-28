@@ -72,6 +72,34 @@ void gui_init(gui *g, world *w)
 
     g->hotbar_selection_sprite.size = (vec2) {24.0f, 24.0f};
     sprite_init(&g->hotbar_selection_sprite, g, (vec2) {0.0f, 22.0f});
+
+    glGenBuffers(256, g->hotbar_item_vbos);
+    glGenVertexArrays(256, g->hotbar_item_vaos);
+
+    block_vertex hotbar_item_buffer[36];
+
+    for (int i = 0; i < 256; i++)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, g->hotbar_item_vbos[i]);
+        glBindVertexArray(g->hotbar_item_vaos[i]);
+
+        glEnableVertexAttribArray(w->blocks_shader.position_location);
+        glVertexAttribPointer(w->blocks_shader.position_location, 3, GL_FLOAT, GL_FALSE, sizeof(block_vertex), NULL);
+        glEnableVertexAttribArray(w->blocks_shader.normal_location);
+        glVertexAttribPointer(w->blocks_shader.normal_location, 3, GL_FLOAT, GL_FALSE, sizeof(block_vertex), (GLvoid *) sizeof(vec3));
+        glEnableVertexAttribArray(w->blocks_shader.tex_coord_location);
+        glVertexAttribPointer(w->blocks_shader.tex_coord_location, 2, GL_FLOAT, GL_FALSE, sizeof(block_vertex), (GLvoid *) (sizeof(vec3) * 2));
+
+        vec2 face_tex[6];
+        block_id neighbours[6];
+        for (int j = 0; j < 6; j++)
+        {
+            face_tex[j] = (vec2) {blocks[i].face_tiles[j] % 16, blocks[i].face_tiles[j] / 16};
+            neighbours[j] = AIR;
+        }
+        make_block(hotbar_item_buffer, (vec3) {0.0f, 0.0f, 0.0f}, face_tex, neighbours);
+        glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(block_vertex), hotbar_item_buffer, GL_STATIC_DRAW);
+    }
 }
 
 void gui_handle_input(gui *g, input *i)
@@ -87,10 +115,8 @@ void gui_draw(gui *g)
 
     int scale = 1 + 2 * (g->window_height / 720);
 
-    mat4 projection;
-    ortho(&projection, -g->window_width / 2 / scale, g->window_width / 2 / scale, -g->window_height / 2 / scale, g->window_height / 2 / scale, -1.0f, 1.0f);
-
-    glUniformMatrix4fv(g->gui_shader.projection_location, 1, GL_FALSE, projection.value);
+    ortho(&TEMP_MAT, -g->window_width / 2 / scale, g->window_width / 2 / scale, -g->window_height / 2 / scale, g->window_height / 2 / scale, -1.0f, 1.0f);
+    glUniformMatrix4fv(g->gui_shader.projection_location, 1, GL_FALSE, TEMP_MAT.value);
 
     glEnable(GL_COLOR_LOGIC_OP);
     sprite_draw(&g->crosshair_sprite, g);
@@ -101,6 +127,32 @@ void gui_draw(gui *g)
     g->hotbar_selection_sprite.position.y = -g->window_height / 2.0f / scale + g->hotbar_sprite.size.y / 2.0f;
     g->hotbar_selection_sprite.position.x = (g->w->selected_block - 1) % 9 * 20.0f - 4 * 20.0f;
     sprite_draw(&g->hotbar_selection_sprite, g);
+
+    glUseProgram(g->w->blocks_shader.program);
+
+    ortho(&TEMP_MAT, -g->window_width / 20 / scale, g->window_width / 20 / scale, -g->window_height / 20 / scale, g->window_height / 20 / scale, -1.0f, 2.0f);
+    glUniformMatrix4fv(g->w->blocks_shader.projection_location, 1, GL_FALSE, TEMP_MAT.value);
+
+    identity(&TEMP_MAT);
+    glUniformMatrix4fv(g->w->blocks_shader.view_location, 1, GL_FALSE, TEMP_MAT.value);
+
+    mat4 model;
+
+    for (int i = 0; i < 9; i++)
+    {
+        identity(&model);
+        rotate(&TEMP_MAT, &AXIS_UP, RADIANS(-45.0f));
+        multiply(&model, &TEMP_MAT, &model);
+        rotate(&TEMP_MAT, &AXIS_RIGHT, RADIANS(-30.0f));
+        multiply(&model, &TEMP_MAT, &model);
+        vec2 translation = {i * 2.0f - 8.0f, -g->window_height / scale / 20.0f + 1.1f};
+        translate_v2(&TEMP_MAT, &translation);
+        multiply(&model, &TEMP_MAT, &model);
+
+        glUniformMatrix4fv(g->w->blocks_shader.model_location, 1, GL_FALSE, model.value);
+        glBindVertexArray(g->hotbar_item_vaos[i + 1 + (g->w->selected_block - 1) / 9 * 9]);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 }
 
 void gui_destroy(gui *g)
@@ -108,6 +160,8 @@ void gui_destroy(gui *g)
     sprite_destroy(&g->crosshair_sprite);
     sprite_destroy(&g->hotbar_sprite);
     sprite_destroy(&g->hotbar_selection_sprite);
+    glDeleteBuffers(256, g->hotbar_item_vbos);
+    glDeleteVertexArrays(256, g->hotbar_item_vaos);
     glDeleteTextures(1, &g->gui_texture);
     glDeleteProgram(g->gui_shader.program);
 }

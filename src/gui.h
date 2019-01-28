@@ -31,6 +31,9 @@ typedef struct
     gui_sprite crosshair_sprite;
     gui_sprite hotbar_sprite;
     gui_sprite hotbar_selection_sprite;
+
+    GLuint hotbar_item_vaos[256];
+    GLuint hotbar_item_vbos[256];
 } gui;
 
 void gui_init(gui *g, world* w);

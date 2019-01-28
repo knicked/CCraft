@@ -23,6 +23,12 @@ typedef struct
     float y;
 } vec2;
 
+static vec3 AXIS_UP = {0.0f, 1.0f, 0.0f};
+static vec3 AXIS_RIGHT = {1.0f, 0.0f, 0.0f};
+static vec3 AXIS_FRONT = {0.0f, 0.0f, 1.0f};
+
+static mat4 TEMP_MAT;
+
 void normalize(vec3 *v);
 
 void identity(mat4 *m);
