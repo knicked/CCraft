@@ -12,6 +12,7 @@ typedef struct
 
 int bounding_box_update(bounding_box *box, vec3 *position);
 
+int is_colliding(bounding_box *b1, bounding_box *b2);
 int is_touching(bounding_box *b1, bounding_box *b2);
 
 #endif

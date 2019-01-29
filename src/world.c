@@ -249,10 +249,15 @@ void world_tick(world *w)
         }
         if (w->placing_block)
         {
-            world_set_block(w,
-                w->selected_block_x + w->selected_face_x,
-                w->selected_block_y + w->selected_face_y,
-                w->selected_block_z + w->selected_face_z, w->selected_block);
+            vec3 position = {w->selected_block_x + w->selected_face_x, w->selected_block_y + w->selected_face_y - 0.5f, w->selected_block_z + w->selected_face_z};
+            bounding_box_update(&block_box, &position);
+            if (!is_colliding(&block_box, &w->player.box))
+            {
+                world_set_block(w,
+                    w->selected_block_x + w->selected_face_x,
+                    w->selected_block_y + w->selected_face_y,
+                    w->selected_block_z + w->selected_face_z, w->selected_block);
+            }
         }
     }
     w->destroying_block = 0;
