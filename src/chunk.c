@@ -78,6 +78,9 @@ void chunk_init(chunk *c, int x, int z, shader *blocks_shader)
 
     c->x = x;
     c->z = z;
+
+    c->vert_count = 0;
+    c->dirty = 1;
 }
 
 void chunk_destroy(chunk *c)

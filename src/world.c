@@ -143,15 +143,6 @@ void world_init(world *w)
         }
     }
 
-    for (int x = 0; x < WORLD_SIZE; x++)
-    {
-        for (int z = 0; z < WORLD_SIZE; z++)
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, w->chunks[x * WORLD_SIZE + z].vbo);
-            chunk_build_buffer(&w->chunks[x * WORLD_SIZE + z], w, w->chunk_data_buffer);
-        }
-    }
-
     glGenTextures(1, &w->blocks_texture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, w->blocks_texture);
@@ -323,6 +314,39 @@ void world_draw(world *w, double delta_time)
     glUniformMatrix4fv(w->blocks_shader.projection_location, 1, GL_FALSE, w->world_projection.value);
     glUniformMatrix4fv(w->blocks_shader.view_location, 1, GL_FALSE, w->world_view.value);
 
+    for (int i = 0; i < 4; i++)
+    {
+        chunk *chunk_to_update = NULL;
+        float min_distance = -1.0f;
+
+        for (int x = 0; x < WORLD_SIZE; x++)
+        {
+            for (int z = 0; z < WORLD_SIZE; z++)
+            {
+                chunk *c = &w->chunks[x * WORLD_SIZE + z];
+
+                if (c->dirty)
+                {
+                    float distance_x = abs(x - CHUNK_FROM_WORLD_COORDS((int) roundf(w->player.position.x)));
+                    float distance_z = abs(z - CHUNK_FROM_WORLD_COORDS((int) roundf(w->player.position.z)));
+                    float distance = sqrtf(distance_x * distance_x + distance_z * distance_z);
+                    if (distance < min_distance || min_distance < 0.0f)
+                    {
+                        min_distance = distance;
+                        chunk_to_update = c;
+                    }
+                }
+            }
+        }
+
+        if (chunk_to_update)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, chunk_to_update->vbo);
+            chunk_build_buffer(chunk_to_update, w, w->chunk_data_buffer);
+        }
+        else break;
+    }
+
     for (int x = -WORLD_SIZE / 2; x < WORLD_SIZE - WORLD_SIZE / 2; x++)
     {
         for (int z = -WORLD_SIZE / 2; z < WORLD_SIZE - WORLD_SIZE / 2; z++)
@@ -331,11 +355,6 @@ void world_draw(world *w, double delta_time)
             vec3 chunk_translation = {x * CHUNK_SIZE, 0.0f, z * CHUNK_SIZE};
             translate(&w->blocks_model, &chunk_translation);
             glUniformMatrix4fv(w->blocks_shader.model_location, 1, GL_FALSE, w->blocks_model.value);
-            if (c->dirty)
-            {
-                glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
-                chunk_build_buffer(c, w, w->chunk_data_buffer);
-            }
             glBindVertexArray(c->vao);
             glDrawArrays(GL_TRIANGLES, 0, c->vert_count);
         }
