@@ -2,7 +2,7 @@
 #define MESH_H
 
 #include "glmath.h"
-#include "block.h"
+#include "block_data.h"
 
 typedef struct
 {

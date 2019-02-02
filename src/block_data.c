@@ -1,4 +1,4 @@
-#include "block.h"
+#include "block_data.h"
 
 const block_data blocks[256] = {
     {0, 0, 0, 0, 0, 0},
@@ -37,7 +37,6 @@ int block_is_opaque(block_id block)
         case SAPLING:
         case GLASS:
             return 0;
-            break;
         default:
             return 1;
     }

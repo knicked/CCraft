@@ -8,7 +8,7 @@ add_executable(
     src/util.c
     src/bounding_box.c
     src/mesh.c
-    src/block.c
+    src/block_data.c
     src/chunk.c
     src/entity.c
     src/world.c
@@ -18,6 +18,11 @@ add_executable(
     src/main.c
     deps/glad/src/glad.c
     deps/lodepng/lodepng.c)
+
+add_executable(
+    CCraftServer
+    src/server/server.c
+    src/server/main.c)
 
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs" FORCE)
@@ -29,7 +34,8 @@ include_directories(deps/glfw/include)
 include_directories(deps/lodepng)
 
 if(WIN32)
-    target_link_libraries(CCraft opengl32)
+    target_link_libraries(CCraft wsock32 ws2_32 opengl32)
+    target_link_libraries(CCraftServer wsock32 ws2_32)
 elseif(APPLE)
     target_link_libraries(CCraft
         "-framework Cocoa"
@@ -42,5 +48,6 @@ elseif(UNIX)
 endif()
 
 target_link_libraries(CCraft glfw ${GLFW_LIBRARIES})
+target_link_libraries(CCraftServer glfw ${GLFW_LIBRARIES})
 
 add_custom_command(TARGET CCraft POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:CCraft>/res)

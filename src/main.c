@@ -1,7 +1,9 @@
 #include "game.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #define FPS 60.0
 
@@ -38,7 +40,26 @@ int main(int argc, char **argv)
     game g;
     input i;
 
+    g.server_addr.sin_port = htons(25565);
+    g.online = 0;
+
     glfwSetWindowUserPointer(window, &i);
+
+    if (argc / 2 >= 1)
+    {
+        for (int i = 0; i < argc; i++)
+        {
+            if (strcmp(argv[i], "--ip") == 0)
+            {
+                g.server_addr.sin_addr.s_addr = inet_addr(argv[i + 1]);
+                g.online = 1;
+            }
+            else if (strcmp(argv[i], "--port") == 0)
+            {
+                g.server_addr.sin_port = htons((unsigned short) atoi(argv[i + 1]));
+            }
+        }
+    }
 
     game_init(&g, window);
     input_init(&i, window);

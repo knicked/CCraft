@@ -1,6 +1,7 @@
 #include "entity.h"
 
 #include "world.h"
+#include "block_data.h"
 
 #include <math.h>
 

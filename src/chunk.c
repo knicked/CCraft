@@ -1,5 +1,6 @@
 #include "chunk.h"
 #include "world.h"
+#include "block_data.h"
 
 #include <glad/glad.h>
 #include <stddef.h>

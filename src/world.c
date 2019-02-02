@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include "util.h"
+#include "block_data.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -232,22 +233,29 @@ void world_tick(world *w)
     w->player.velocity.x *= w->player.on_ground ? 0.6f : 0.91f;
     w->player.velocity.z *= w->player.on_ground ? 0.6f : 0.91f;
 
+    w->block_changed = 0;
     if (w->block_in_range)
     {
         if (w->destroying_block)
         {
             world_set_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z, AIR);
+            w->block_changed = 1;
+            w->new_block = AIR;
         }
         if (w->placing_block)
         {
-            vec3 position = {w->selected_block_x + w->selected_face_x, w->selected_block_y + w->selected_face_y - 0.5f, w->selected_block_z + w->selected_face_z};
+            w->selected_block_x += w->selected_face_x;
+            w->selected_block_y += w->selected_face_y;
+            w->selected_block_z += w->selected_face_z;
+
+            vec3 position = {w->selected_block_x, w->selected_block_y - 0.5f, w->selected_block_z};
             bounding_box_update(&block_box, &position);
+
             if (!is_colliding(&block_box, &w->player.box))
             {
-                world_set_block(w,
-                    w->selected_block_x + w->selected_face_x,
-                    w->selected_block_y + w->selected_face_y,
-                    w->selected_block_z + w->selected_face_z, w->selected_block);
+                world_set_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z, w->selected_block);
+                w->block_changed = 1;
+                w->new_block = w->selected_block;
             }
         }
     }

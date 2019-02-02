@@ -1,8 +1,6 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#include "bounding_box.h"
-
 #define AIR 0
 #define STONE 1
 #define GRASS 2
@@ -26,15 +24,5 @@
 #define GLASS 20
 
 typedef unsigned char block_id;
-
-typedef struct
-{
-    int face_tiles[6];
-} block_data;
-
-extern const block_data blocks[256];
-extern bounding_box block_box;
-
-int block_is_opaque(block_id block);
 
 #endif

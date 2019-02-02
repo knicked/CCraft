@@ -5,6 +5,7 @@
 #include "entity.h"
 #include "input.h"
 #include "shader.h"
+#include "sockets.h"
 
 #define WORLD_SIZE 32
 
@@ -31,6 +32,9 @@ typedef struct
     int selected_face_y;
     int selected_face_z;
     int block_in_range;
+
+    int block_changed;
+    block_id new_block;
 
     block_vertex *chunk_data_buffer;
 

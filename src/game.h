@@ -12,6 +12,13 @@ typedef struct
 
     world w;
     gui gui;
+
+    int online;
+    char buffer[256];
+    struct sockaddr_in server_addr;
+    SOCKET server_socket;
+    fd_set read_fds;
+    struct timeval tv;
 } game;
 
 void game_init(game *g, GLFWwindow *window);
