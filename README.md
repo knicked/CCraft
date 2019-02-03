@@ -28,4 +28,4 @@ Connect to a server by specifying its IP address and optionally its port (the de
 
 You can optionally specify the server's port (the default is 25565) 
 
-    ./Server --port <PORT>
+    ./CCraftServer --port <PORT>
