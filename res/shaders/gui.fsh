@@ -8,7 +8,7 @@ out vec4 out_color;
 
 void main()
 {
-    out_color = texture2D(gui_texture, pass_tex_coord);
+    out_color = texture(gui_texture, pass_tex_coord);
     if (out_color.a == 0.0)
         discard;
 }
