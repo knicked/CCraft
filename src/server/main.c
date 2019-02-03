@@ -1,7 +1,6 @@
 #include "server.h"
 
-#include "GLFW/glfw3.h"
-
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,11 +24,14 @@ int main(int argc, char **argv)
     }
     server_init(&s, port);
 
-    double last_time = 0.0;
-    double current_time = 0.0;
-    double delta_time = 0.0;
-    double tick_accumulator = 0.0;
-    const double tick_interval = 1.0 / 20.0;
+    struct timeval current_tv;
+    gettimeofday(&current_tv, NULL);
+
+    unsigned int last_time = 0;
+    unsigned int current_time = 0;
+    unsigned int delta_time = 0;
+    unsigned int tick_accumulator = 0;
+    const unsigned int tick_interval = 1000000 / 20;
 
     int first_tick = 1;
 
@@ -41,7 +43,8 @@ int main(int argc, char **argv)
 
     while (1)
     {
-        current_time = glfwGetTime();
+        gettimeofday(&current_tv, NULL);
+        current_time = 1000000 * current_tv.tv_sec + current_tv.tv_usec;
         if (first_tick)
         {
             last_time = current_time - tick_interval;
@@ -51,8 +54,9 @@ int main(int argc, char **argv)
 
         if (delta_time < tick_interval && !first_tick)
         {
-            usleep(tick_interval * 1000000 - delta_time * 1000000);
-            current_time = glfwGetTime();
+            usleep(tick_interval - delta_time);
+            gettimeofday(&current_tv, NULL);
+            current_time = 1000000 * current_tv.tv_sec + current_tv.tv_usec;
             delta_time = current_time - last_time;
         }
 

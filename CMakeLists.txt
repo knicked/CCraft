@@ -48,6 +48,5 @@ elseif(UNIX)
 endif()
 
 target_link_libraries(CCraft glfw ${GLFW_LIBRARIES})
-target_link_libraries(CCraftServer glfw ${GLFW_LIBRARIES})
 
 add_custom_command(TARGET CCraft POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:CCraft>/res)

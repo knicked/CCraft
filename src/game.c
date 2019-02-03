@@ -53,10 +53,11 @@ void game_destroy(game *g)
 
     if (g->online)
     {
-        close(g->server_socket);
-
         #ifdef _WIN32
+            closesocket(g->server_socket);
             WSACleanup();
+        #else
+            close(g->server_socket);
         #endif
     }
 }

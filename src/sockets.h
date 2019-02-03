@@ -4,6 +4,7 @@
 #ifdef _WIN32
     #include <winsock2.h>
     #include <Ws2tcpip.h>
+    #define SOCKET_VALID(s) ((s) != INVALID_SOCKET)
 #else
     #include <sys/socket.h>
     #include <arpa/inet.h>

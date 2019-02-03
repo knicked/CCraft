@@ -86,5 +86,10 @@ void server_tick(server *s)
 
 void server_destroy(server *s)
 {
-    close(s->listener);
+    #ifdef _WIN32
+        closesocket(s->listener);
+        WSACleanup();
+    #else
+        close(s->listener);
+    #endif
 }
