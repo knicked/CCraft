@@ -19,7 +19,10 @@ typedef struct
     float window_width;
     float window_height;
 
+    network_player players[MAX_PLAYERS];
+    unsigned char num_players;
     entity player;
+
     vec3 camera_position;
     vec2 camera_rotation;
     int destroying_block;
@@ -47,8 +50,8 @@ typedef struct
 
     shader lines_shader;
     
-    GLuint selection_box_vao;
-    GLuint selection_box_buffer;
+    GLuint frame_vao;
+    GLuint frame_vbo;
 } world;
 
 void world_init(world *w);

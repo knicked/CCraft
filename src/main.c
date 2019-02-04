@@ -51,8 +51,16 @@ int main(int argc, char **argv)
         {
             if (strcmp(argv[i], "--ip") == 0)
             {
-                g.server_addr.sin_addr.s_addr = inet_addr(argv[i + 1]);
-                g.online = 1;
+                struct hostent *host;
+                if ((host = gethostbyname(argv[i + 1])) == 0)
+                {
+                    printf("Couldn't resolve the server hostname.\n");
+                }
+                else
+                {
+                    g.server_addr.sin_addr.s_addr = ((struct in_addr *) (host->h_addr_list[0]))->s_addr;
+                    g.online = 1;
+                }
             }
             else if (strcmp(argv[i], "--port") == 0)
             {

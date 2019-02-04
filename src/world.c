@@ -151,14 +151,16 @@ void world_init(world *w)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     load_png_texture("res/textures/terrain.png");
 
-    glGenVertexArrays(1, &w->selection_box_vao);
-    glBindVertexArray(w->selection_box_vao);
+    glGenVertexArrays(1, &w->frame_vao);
+    glBindVertexArray(w->frame_vao);
 
-    glGenBuffers(1, &w->selection_box_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, w->selection_box_buffer);
+    glGenBuffers(1, &w->frame_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, w->frame_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * 24, NULL, GL_STREAM_DRAW);
     glVertexAttribPointer(w->lines_shader.position_location, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), NULL);
     glEnableVertexAttribArray(w->lines_shader.position_location);
+
+    w->num_players = 0;
 }
 
 void world_handle_input(world *w, input *i)
@@ -368,20 +370,43 @@ void world_draw(world *w, double delta_time)
         }
     }
 
+    glUseProgram(w->lines_shader.program);
+
+    glUniformMatrix4fv(w->lines_shader.projection_location, 1, GL_FALSE, w->world_projection.value);
+    glUniformMatrix4fv(w->lines_shader.view_location, 1, GL_FALSE, w->world_view.value);
+
+    glBindBuffer(GL_ARRAY_BUFFER, w->frame_vbo);
+    glBindVertexArray(w->frame_vao);
+
+    vec3 data[24];
+    vec3 position;
+
+    for (int i = 0; i < w->num_players; i++)
+    {
+        position = (vec3)
+        {
+            w->players[i].x / 32.0f,
+            w->players[i].y / 32.0f + w->player.box.size.y * 0.5f,
+            w->players[i].z / 32.0f
+        };
+
+        make_frame(data, &position, &w->player.box);
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
+        glDrawArrays(GL_LINES, 0, 24);
+    }
+
     if (w->block_in_range)
     {
-        glUseProgram(w->lines_shader.program);
+        position = (vec3)
+        {
+            w->selected_block_x,
+            w->selected_block_y,
+            w->selected_block_z
+        };
+        make_frame(data, &position, &block_box);
 
-        glUniformMatrix4fv(w->lines_shader.projection_location, 1, GL_FALSE, w->world_projection.value);
-        glUniformMatrix4fv(w->lines_shader.view_location, 1, GL_FALSE, w->world_view.value);
-
-        vec3 data[24];
-        make_selection_box(data, w->selected_block_x, w->selected_block_y, w->selected_block_z);
-
-        glBindBuffer(GL_ARRAY_BUFFER, w->selection_box_buffer);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
-
-        glBindVertexArray(w->selection_box_vao);
         glDrawArrays(GL_LINES, 0, 24);
     }
 }
@@ -398,8 +423,8 @@ void world_destroy(world *w)
     free(w->chunks);
     free(w->chunk_data_buffer);
 
-    glDeleteBuffers(1, &w->selection_box_buffer);
-    glDeleteVertexArrays(1, &w->selection_box_vao);   
+    glDeleteBuffers(1, &w->frame_vbo);
+    glDeleteVertexArrays(1, &w->frame_vao);
 
     glDeleteTextures(1, &w->blocks_texture);
     glDeleteProgram(w->blocks_shader.program);

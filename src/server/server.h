@@ -9,6 +9,9 @@ typedef struct
     SOCKET listener;
     SOCKET max_fd;
 
+    network_player players[MAX_PLAYERS];
+    unsigned int num_players;
+
     char buffer[256];
 } server;
 

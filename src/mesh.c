@@ -130,7 +130,7 @@ int make_block(block_vertex *data, vec3 position, vec2 face_tex[6], block_id nei
     return vert_count;
 }
 
-void make_selection_box(vec3 *data, int x, int y, int z)
+void make_frame(vec3 *data, vec3 *position, bounding_box *box)
 {
     static const vec3 positions[] =
     {
@@ -165,9 +165,9 @@ void make_selection_box(vec3 *data, int x, int y, int z)
 
     for (int i = 0; i < 24; i++)
     {
-        data->x = positions[indices[i]].x + x;
-        data->y = positions[indices[i]].y + y;
-        data->z = positions[indices[i]].z + z;
+        data->x = positions[indices[i]].x * box->size.x + position->x;
+        data->y = positions[indices[i]].y * box->size.y + position->y;
+        data->z = positions[indices[i]].z * box->size.z + position->z;
         data++;
     }
 }
