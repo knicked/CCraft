@@ -19,16 +19,9 @@ void game_init(game *g, GLFWwindow *window)
     world_init(&g->w);
     gui_init(&g->gui, &g->w);
 
-
     if (g->online)
     {
         printf("Connecting to the server...\n");
-
-        #ifdef _WIN32
-            WSADATA wsa_data;
-            WSAStartup(MAKEWORD(1,1), &wsa_data);
-        #endif
-
         g->server_socket = socket(PF_INET, SOCK_STREAM, 0);
         g->server_addr.sin_family = AF_INET;
         if (SOCKET_VALID(connect(g->server_socket, (struct sockaddr *) &g->server_addr, sizeof(g->server_addr))))
@@ -55,7 +48,6 @@ void game_destroy(game *g)
     {
         #ifdef _WIN32
             closesocket(g->server_socket);
-            WSACleanup();
         #else
             close(g->server_socket);
         #endif

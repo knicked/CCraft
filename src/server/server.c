@@ -25,7 +25,9 @@ void server_init(server *s, unsigned short port)
             printf("Server listening for connections on port %d\n", port);
             FD_SET(s->listener, &s->sockets);
             s->max_fd = s->listener;
-            signal(SIGPIPE, SIG_IGN);
+            #ifndef _WIN32
+                signal(SIGPIPE, SIG_IGN);
+            #endif
         }
         else
             printf("Server socket can't listen for connections.\n");

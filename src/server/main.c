@@ -66,13 +66,15 @@ int main(int argc, char **argv)
 
         server_tick(&s);
 
-        FD_ZERO(&read_fds);
-        FD_SET(0, &read_fds);
+        #ifndef _WIN32
+            FD_ZERO(&read_fds);
+            FD_SET(0, &read_fds);
 
-        select(1, &read_fds, NULL, NULL, &tv);
+            select(1, &read_fds, NULL, NULL, &tv);
 
-        if (FD_ISSET(0, &read_fds))
-            break;
+            if (FD_ISSET(0, &read_fds))
+                break;
+        #endif
     }
 
     printf("Closing the server...\n");

@@ -45,21 +45,32 @@ int main(int argc, char **argv)
 
     glfwSetWindowUserPointer(window, &i);
 
+    #ifdef _WIN32
+        WSADATA wsa_data;
+        WSAStartup(MAKEWORD(1,1), &wsa_data);
+    #endif
+
     if (argc / 2 >= 1)
     {
         for (int i = 0; i < argc; i++)
         {
             if (strcmp(argv[i], "--ip") == 0)
             {
-                struct hostent *host;
-                if ((host = gethostbyname(argv[i + 1])) == 0)
+                struct addrinfo hints, *res;
+
+                memset (&hints, 0, sizeof (hints));
+                hints.ai_family = AF_UNSPEC;
+                hints.ai_socktype = SOCK_STREAM;
+                hints.ai_protocol = IPPROTO_TCP;
+
+                if (getaddrinfo(argv[i + 1], NULL, &hints, &res) == 0)
                 {
-                    printf("Couldn't resolve the server hostname.\n");
+                    g.server_addr.sin_addr = ((struct sockaddr_in *) res->ai_addr)->sin_addr;
+                    g.online = 1;
                 }
                 else
                 {
-                    g.server_addr.sin_addr.s_addr = ((struct in_addr *) (host->h_addr_list[0]))->s_addr;
-                    g.online = 1;
+                    printf("Couldn't resolve the server hostname.\n");
                 }
             }
             else if (strcmp(argv[i], "--port") == 0)
@@ -120,6 +131,10 @@ int main(int argc, char **argv)
 
     glfwDestroyWindow(window);
     glfwTerminate();
+
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
 
     return 0;
 }
