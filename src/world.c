@@ -206,12 +206,16 @@ void world_handle_input(world *w, input *i)
             normalize(&w->player.move_direction);
         }
 
-        if (i->scroll_delta != 0.0)
+        if (i->scroll_delta < 0.0)
         {
-            w->selected_block -= i->scroll_delta;
-            if (w->selected_block == 0) w->selected_block = 3 * 9;
-            if (w->selected_block == 3 * 9 + 1) w->selected_block = 1;
+            w->selected_block--;
         }
+        else if (i->scroll_delta > 0.0)
+        {
+            w->selected_block++;
+        }
+        if (w->selected_block == 0) w->selected_block = 3 * 9;
+        else if (w->selected_block == 3 * 9 + 1) w->selected_block = 1;
 
         if (i->mouse_buttons_down[GLFW_MOUSE_BUTTON_LEFT])
         {
