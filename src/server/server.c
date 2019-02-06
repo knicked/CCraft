@@ -157,26 +157,24 @@ void server_tick(server *s)
                     }
                 }
             }
+        }
+        for (int i = 0; i < s->num_players; i++)
+        {
+            int bytes_to_send = 0;
             for (int j = 0; j < s->num_players; j++)
             {
-                if (s->players[j].id == i)
+                if (j != i)
                 {
-                    position_update_packet packet;
-                    packet.id = POSITION_UPDATE_ID;
-                    packet.player_id = s->players[j].id;
-                    packet.x = htons(s->players[j].x);
-                    packet.y = htons(s->players[j].y);
-                    packet.z = htons(s->players[j].z);
-                    for (int k = 0; k <= s->max_fd; k++)
-                    {
-                        if (k != s->listener && k != i)
-                        {
-                            send(k, &packet, sizeof(packet), 0);
-                        }
-                    }
-                    break;
+                    position_update_packet *packet = (position_update_packet *) (s->buffer + bytes_to_send);
+                    packet->id = POSITION_UPDATE_ID;
+                    packet->player_id = s->players[j].id;
+                    packet->x = htons(s->players[j].x);
+                    packet->y = htons(s->players[j].y);
+                    packet->z = htons(s->players[j].z);
+                    bytes_to_send += sizeof(position_update_packet);
                 }
             }
+            send(s->players[i].id, s->buffer, bytes_to_send, 0);
         }
     }
 }
