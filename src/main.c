@@ -121,7 +121,7 @@ int main(int argc, char **argv)
         game_handle_input(&g, &i);
         input_end_frame(&i);
 
-        game_draw(&g, delta_time);
+        game_draw(&g, delta_time, tick_accumulator);
 
         glfwSwapBuffers(window);
         last_time = current_time;

@@ -28,6 +28,9 @@ typedef struct
     short x;
     short y;
     short z;
+    short prev_x;
+    short prev_y;
+    short prev_z;
     unsigned char id;
 } network_player;
 

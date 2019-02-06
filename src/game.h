@@ -25,6 +25,6 @@ void game_init(game *g, GLFWwindow *window);
 void game_destroy(game *g);
 void game_handle_input(game *g, input *i);
 void game_tick(game *g);
-void game_draw(game *g, double delta_time);
+void game_draw(game *g, double delta_time, double time_since_tick);
 
 #endif

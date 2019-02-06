@@ -85,6 +85,13 @@ void game_tick(game *g)
 
     if (g->online)
     {
+        for (int i = 0; i < g->w.num_players; i++)
+        {
+            g->w.players[i].prev_x = g->w.players[i].x;
+            g->w.players[i].prev_y = g->w.players[i].y;
+            g->w.players[i].prev_z = g->w.players[i].z;
+        }
+
         FD_ZERO(&g->read_fds);
         FD_SET(g->server_socket, &g->read_fds);
 
@@ -201,10 +208,10 @@ void game_tick(game *g)
     }
 }
 
-void game_draw(game *g, double delta_time)
+void game_draw(game *g, double delta_time, double time_since_tick)
 {
     glViewport(0, 0, g->window_width, g->window_height);
 
-    world_draw(&g->w, delta_time);
+    world_draw(&g->w, delta_time, time_since_tick);
     gui_draw(&g->gui);
 }

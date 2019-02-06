@@ -273,7 +273,7 @@ void world_tick(world *w)
     add_v3(&w->player.velocity, &w->player.velocity, &velocity_change);
 }
 
-void world_draw(world *w, double delta_time)
+void world_draw(world *w, double delta_time, double time_since_tick)
 {
     double tick_delta_time = delta_time * 20.0f;
 
@@ -384,6 +384,7 @@ void world_draw(world *w, double delta_time)
 
     vec3 data[24];
     vec3 position;
+    vec3 prev_position;
 
     for (int i = 0; i < w->num_players; i++)
     {
@@ -393,6 +394,15 @@ void world_draw(world *w, double delta_time)
             w->players[i].y / 32.0f + w->player.box.size.y * 0.5f,
             w->players[i].z / 32.0f
         };
+
+        prev_position = (vec3)
+        {
+            w->players[i].prev_x / 32.0f,
+            w->players[i].prev_y / 32.0f + w->player.box.size.y * 0.5f,
+            w->players[i].prev_z / 32.0f
+        };
+
+        lerp_v3(&position, &prev_position, &position, time_since_tick * 20.0f);
 
         make_frame(data, &position, &w->player.box);
 

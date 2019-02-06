@@ -2,6 +2,11 @@
 
 #include <math.h>
 
+float lerp(float a, float b, float t)
+{
+    return a + t * (b - a);
+}
+
 void normalize(vec3 *v)
 {
     float d = sqrtf((v->x) * (v->x) + (v->y) * (v->y) + (v->z) * (v->z));
@@ -104,6 +109,13 @@ void multiply_v2f(vec2 *v, vec2 *v1, float v2)
 {
     v->x = v1->x * v2;
     v->y = v1->y * v2;
+}
+
+void lerp_v3(vec3 *v, vec3 *v1, vec3 *v2, float t)
+{
+    v->x = lerp(v1->x, v2->x, t);
+    v->y = lerp(v1->y, v2->y, t);
+    v->z = lerp(v1->z, v2->z, t);
 }
 
 void frustum(mat4 *m, float left, float right, float bottom, float top, float znear, float zfar)
