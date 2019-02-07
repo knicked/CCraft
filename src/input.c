@@ -33,7 +33,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void scroll_callback(GLFWwindow *window, double x_offset, double y_offset)
 {
     input *i = (input *) glfwGetWindowUserPointer(window);
-    i->scroll_delta = y_offset;
+    i->scroll_delta = y_offset * -1;
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
