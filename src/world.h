@@ -14,6 +14,17 @@
 
 typedef struct
 {
+    short x;
+    short y;
+    short z;
+    short prev_x;
+    short prev_y;
+    short prev_z;
+    unsigned char id;
+} network_player;
+
+typedef struct
+{
     chunk *chunks;
 
     float window_width;
@@ -55,6 +66,7 @@ typedef struct
 } world;
 
 void world_init(world *w);
+void world_generate(world *w);
 void world_handle_input(world *w, input *i);
 void world_tick(world *w);
 void world_draw(world *w, double delta_time, double time_since_tick);

@@ -83,12 +83,12 @@ int main(int argc, char **argv)
     game_init(&g, window);
     input_init(&i, window);
 
+    const double tick_interval = 1.0 / 20.0;
+    const double frame_interval = 1.0 / FPS;
     double last_time = 0.0;
     double current_time = 0.0;
     double delta_time = 0.0;
-    double tick_accumulator = 0.0;
-    const double tick_interval = 1.0 / 20.0;
-    const double frame_interval = 1.0 / FPS;
+    double tick_accumulator = tick_interval;
 
     int first_frame = 1;
 

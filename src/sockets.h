@@ -17,22 +17,13 @@
 #include "block.h"
 
 #define MAX_PLAYERS 32
+#define DATA_BUFFER_SIZE 4096
 
 #define SET_BLOCK_ID 0
 #define SPAWN_PLAYER_ID 1
 #define DESPAWN_PLAYER_ID 2
 #define POSITION_UPDATE_ID 3
-
-typedef struct
-{
-    short x;
-    short y;
-    short z;
-    short prev_x;
-    short prev_y;
-    short prev_z;
-    unsigned char id;
-} network_player;
+#define CHUNK_DATA_ID 4
 
 typedef struct
 {
@@ -42,6 +33,16 @@ typedef struct
     short y;
     short z;
 } set_block_packet;
+
+typedef struct
+{
+    unsigned char id;
+    char x;
+    char z;
+    unsigned short length;
+    unsigned short complete;
+    char data[1024];
+} chunk_data_packet;
 
 typedef struct
 {

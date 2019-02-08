@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 void game_init(game *g, GLFWwindow *window)
@@ -27,16 +28,19 @@ void game_init(game *g, GLFWwindow *window)
         if (SOCKET_VALID(connect(g->server_socket, (struct sockaddr *) &g->server_addr, sizeof(g->server_addr))))
         {
             printf("Successfully connected to the server.\n");
-            g->online = 1;
+            g->buffer = malloc(DATA_BUFFER_SIZE);
         }
         else
         {
             printf ("Couldn't connect to the server.\n");
+            g->online = 0;
             close(g->server_socket);
         }
         g->tv.tv_sec = 0;
         g->tv.tv_usec = 0;
     }
+
+    if (!g->online) world_generate(&g->w);
 }
 
 void game_destroy(game *g)
@@ -51,6 +55,7 @@ void game_destroy(game *g)
         #else
             close(g->server_socket);
         #endif
+        free(g->buffer);
     }
 }
 
@@ -101,7 +106,7 @@ void game_tick(game *g)
         {
             int data_size = 0;
             int data_position = 0;
-            if (SOCKET_VALID(data_size = recv(g->server_socket, g->buffer, sizeof(g->buffer), 0)))
+            if (SOCKET_VALID(data_size = recv(g->server_socket, g->buffer, DATA_BUFFER_SIZE, 0)))
             {
                 if (data_size == 0)
                 {
@@ -174,6 +179,41 @@ void game_tick(game *g)
                                     }
                                 }
                                 data_position += sizeof(position_update_packet);
+                            }
+                            break;
+                            case CHUNK_DATA_ID:
+                            {
+                                chunk_data_packet *packet = (chunk_data_packet *) (g->buffer + data_position);
+                                packet->complete = ntohs(packet->complete);
+                                packet->length = ntohs(packet->length);
+
+                                size_t chunk_x = packet->x + WORLD_SIZE / 2;
+                                size_t chunk_z = packet->z + WORLD_SIZE / 2;
+                                chunk *c = &g->w.chunks[chunk_x * WORLD_SIZE + chunk_z];
+
+                                g->inf_stream.zalloc = Z_NULL;
+                                g->inf_stream.zfree = Z_NULL;
+                                g->inf_stream.opaque = Z_NULL;
+
+                                g->inf_stream.avail_in = sizeof(packet->data);
+                                g->inf_stream.next_in = packet->data;
+                                g->inf_stream.avail_out = sizeof(c->blocks) - packet->complete;
+                                g->inf_stream.next_out = (char *) c->blocks + packet->complete;
+
+                                inflateInit(&g->inf_stream);
+                                inflate(&g->inf_stream, Z_NO_FLUSH);
+                                inflateEnd(&g->inf_stream);
+
+                                if (packet->complete + packet->length == CHUNK_SIZE * WORLD_HEIGHT * CHUNK_SIZE)
+                                {
+                                    c->dirty = 1;
+                                    g->w.chunks[(chunk_x == 0 ? chunk_x : chunk_x - 1) * WORLD_SIZE + chunk_z].dirty = 1;
+                                    g->w.chunks[(chunk_x == WORLD_SIZE - 1 ? chunk_x : chunk_x + 1) * WORLD_SIZE + chunk_z].dirty = 1;
+                                    g->w.chunks[chunk_x * WORLD_SIZE + (chunk_z == 0 ? chunk_z : chunk_z - 1)].dirty = 1;
+                                    g->w.chunks[chunk_x * WORLD_SIZE + (chunk_z == WORLD_SIZE - 1 ? chunk_z : chunk_z + 1)].dirty = 1;
+                                }
+
+                                data_position += sizeof(chunk_data_packet);
                             }
                             break;
                         }

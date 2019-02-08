@@ -16,19 +16,22 @@ add_executable(
     src/game.c
     src/input.c
     src/main.c
+    deps/miniz/miniz.c
     deps/glad/src/glad.c
     deps/lodepng/lodepng.c)
 
 add_executable(
     CCraftServer
     src/server/server.c
-    src/server/main.c)
+    src/server/main.c
+    deps/miniz/miniz.c)
 
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "Build example apps" FORCE)
 
 add_subdirectory(deps/glfw)
+include_directories(deps/miniz)
 include_directories(deps/glad/include)
 include_directories(deps/glfw/include)
 include_directories(deps/lodepng)
@@ -45,6 +48,7 @@ elseif(APPLE)
     )
 elseif(UNIX)
     target_link_libraries(CCraft GL)
+    target_link_libraries(CCraftServer m)
 endif()
 
 target_link_libraries(CCraft glfw ${GLFW_LIBRARIES})

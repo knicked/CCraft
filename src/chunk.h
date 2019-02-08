@@ -8,7 +8,7 @@
 #include <glad/glad.h>
 
 #define CHUNK_SIZE 16
-#define WORLD_HEIGHT 256
+#define WORLD_HEIGHT 128
 
 typedef struct
 {

@@ -57,31 +57,11 @@ void chunk_init(chunk *c, int x, int z, shader *blocks_shader)
     glEnableVertexAttribArray(blocks_shader->tex_coord_location);
     glVertexAttribPointer(blocks_shader->tex_coord_location, 2, GL_FLOAT, GL_FALSE, sizeof(block_vertex), (GLvoid *) (sizeof(vec3) * 2));
 
-    static const int GRASS_LEVEL = 100;
-
-    for (int x = 0; x < CHUNK_SIZE; x++)
-    {
-        for (int y = 0; y < WORLD_HEIGHT; y++)
-        {
-            for (int z = 0; z < CHUNK_SIZE; z++)
-            {
-                if (y > GRASS_LEVEL)
-                    c->blocks[x][y][z] = AIR;
-                else if (y == GRASS_LEVEL)
-                    c->blocks[x][y][z] = GRASS;
-                else if (y < GRASS_LEVEL)
-                    c->blocks[x][y][z] = DIRT;
-                if (y < 50)
-                    c->blocks[x][y][z] = STONE;
-            }
-        }
-    }
-
     c->x = x;
     c->z = z;
 
     c->vert_count = 0;
-    c->dirty = 1;
+    c->dirty = 0;
 }
 
 void chunk_destroy(chunk *c)

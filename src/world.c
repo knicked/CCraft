@@ -108,7 +108,7 @@ void calculate_selected_block(world *w, float radius)
 void world_init(world *w)
 {
     w->player.box = (bounding_box) {{0.6f, 1.8f, 0.6f}};
-    w->player.position = (vec3) {0.0f, 100.5f, 0.0f};
+    w->player.position = (vec3) {0.0f, WORLD_HEIGHT, 0.0f};
     w->player.velocity = (vec3) {0.0f};
     w->player.move_direction = (vec3) {0.0f};
     w->player.jumping = 0;
@@ -161,6 +161,41 @@ void world_init(world *w)
     glEnableVertexAttribArray(w->lines_shader.position_location);
 
     w->num_players = 0;
+}
+
+void world_generate(world *w)
+{
+    static const int GRASS_LEVEL = 40;
+
+    for (int x = 0; x < WORLD_SIZE; x++)
+    {
+        for (int z = 0; z < WORLD_SIZE; z++)
+        {
+            chunk *c = &w->chunks[x * WORLD_SIZE + z];
+
+            for (int x = 0; x < CHUNK_SIZE; x++)
+            {
+                for (int y = 0; y < WORLD_HEIGHT; y++)
+                {
+                    for (int z = 0; z < CHUNK_SIZE; z++)
+                    {
+                        if (y > GRASS_LEVEL)
+                            c->blocks[x][y][z] = AIR;
+                        else if (y == GRASS_LEVEL)
+                            c->blocks[x][y][z] = GRASS;
+                        else if (y == 0)
+                            c->blocks[x][y][z] = BEDROCK;
+                        else if (y < 25)
+                            c->blocks[x][y][z] = STONE;
+                        else if (y < GRASS_LEVEL)
+                            c->blocks[x][y][z] = DIRT;
+                    }
+                }
+            }
+
+            c->dirty = 1;
+        }
+    }
 }
 
 void world_handle_input(world *w, input *i)

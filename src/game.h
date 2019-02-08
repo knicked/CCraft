@@ -3,6 +3,7 @@
 
 #include "world.h"
 #include "gui.h"
+#include "miniz.h"
 
 typedef struct
 {
@@ -14,7 +15,8 @@ typedef struct
     gui gui;
 
     int online;
-    char buffer[256];
+    char *buffer;
+    z_stream inf_stream;
     struct sockaddr_in server_addr;
     SOCKET server_socket;
     fd_set read_fds;
