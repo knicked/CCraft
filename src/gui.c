@@ -4,6 +4,7 @@
 #include "block_data.h"
 
 #include <math.h>
+#include <string.h>
 
 void sprite_init(gui_sprite *sprite, gui *g, vec2 tex_position)
 {
@@ -92,6 +93,7 @@ void gui_init(gui *g, world *w)
         glEnableVertexAttribArray(w->blocks_shader.tex_coord_location);
         glVertexAttribPointer(w->blocks_shader.tex_coord_location, 2, GL_FLOAT, GL_FALSE, sizeof(block_vertex), (GLvoid *) (sizeof(vec3) * 2));
 
+        memset(hotbar_item_buffer, 0, sizeof(hotbar_item_buffer));
         make_block(hotbar_item_buffer, (vec3) {0.0f, 0.0f, 0.0f}, (block_id) i, neighbours);
         glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(block_vertex), hotbar_item_buffer, GL_STATIC_DRAW);
     }
