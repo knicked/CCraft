@@ -11,7 +11,7 @@ typedef struct
     vec2 tex_coord;
 } block_vertex;
 
-int make_block(block_vertex *data, vec3 position, vec2 face_tex[6], block_id neighbours[6]);
+int make_block(block_vertex *data, vec3 position, block_id block, block_id neighbours[6]);
 void make_frame(vec3 *data, vec3 *position, bounding_box *box);
 
 #endif

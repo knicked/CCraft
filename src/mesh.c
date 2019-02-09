@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 
-int make_block(block_vertex *data, vec3 position, vec2 face_tex[6], block_id neighbours[6])
+int make_block(block_vertex *data, vec3 position, block_id block, block_id neighbours[6])
 {
     static vec3 positions[][4] = {
         //front face
@@ -114,14 +114,16 @@ int make_block(block_vertex *data, vec3 position, vec2 face_tex[6], block_id nei
 
     for (int i = 0; i < 6; i++)
     {
-        if (!block_is_opaque(neighbours[i]))
+        if (!block_is_opaque(neighbours[i]) && (block != GLASS || neighbours[i] != GLASS))
         {
+            float tex_x = blocks[block].face_tiles[i] % 16;
+            float tex_y = blocks[block].face_tiles[i] / 16;
             for (int j = 0; j < 6; j++)
             {
                 add_v3(&d->position, &position, &positions[i][indices[j]]);
                 d->normal = normals[i];
-                d->tex_coord.x = face_tex[i].x / 16.0f + tex_coords[i][indices[j]].x / 16.0f;
-                d->tex_coord.y = face_tex[i].y / 16.0f + tex_coords[i][indices[j]].y / 16.0f;
+                d->tex_coord.x = tex_x / 16.0f + tex_coords[i][indices[j]].x / 16.0f;
+                d->tex_coord.y = tex_y / 16.0f + tex_coords[i][indices[j]].y / 16.0f;
                 d++;
                 vert_count++;
             }

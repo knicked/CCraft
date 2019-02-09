@@ -9,7 +9,6 @@ void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer)
 {
     c->vert_count = 0;
 
-    vec2 face_tex[6];
     block_id neighbours[6];
 
     int x_off = CHUNK_SIZE * c->x;
@@ -30,9 +29,7 @@ void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer)
                     neighbours[4] = world_get_block((world *) w, x + x_off, y + 1, z + z_off);
                     neighbours[5] = world_get_block((world *) w, x + x_off, y - 1, z + z_off);
 
-                    for (int i = 0; i < 6; i++)
-                        face_tex[i] = (vec2) {blocks[c->blocks[x][y][z]].face_tiles[i] % 16, blocks[c->blocks[x][y][z]].face_tiles[i] / 16};
-                    c->vert_count += make_block(data_buffer + c->vert_count, (vec3){x, y, z}, face_tex, neighbours);
+                    c->vert_count += make_block(data_buffer + c->vert_count, (vec3){x, y, z}, c->blocks[x][y][z], neighbours);
                 }
             }
         }

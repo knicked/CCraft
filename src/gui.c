@@ -78,6 +78,7 @@ void gui_init(gui *g, world *w)
     glGenVertexArrays(256, g->hotbar_item_vaos);
 
     block_vertex hotbar_item_buffer[36];
+    block_id neighbours[6] = { AIR };
 
     for (int i = 0; i < 256; i++)
     {
@@ -91,14 +92,7 @@ void gui_init(gui *g, world *w)
         glEnableVertexAttribArray(w->blocks_shader.tex_coord_location);
         glVertexAttribPointer(w->blocks_shader.tex_coord_location, 2, GL_FLOAT, GL_FALSE, sizeof(block_vertex), (GLvoid *) (sizeof(vec3) * 2));
 
-        vec2 face_tex[6];
-        block_id neighbours[6];
-        for (int j = 0; j < 6; j++)
-        {
-            face_tex[j] = (vec2) {blocks[i].face_tiles[j] % 16, blocks[i].face_tiles[j] / 16};
-            neighbours[j] = AIR;
-        }
-        make_block(hotbar_item_buffer, (vec3) {0.0f, 0.0f, 0.0f}, face_tex, neighbours);
+        make_block(hotbar_item_buffer, (vec3) {0.0f, 0.0f, 0.0f}, (block_id) i, neighbours);
         glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(block_vertex), hotbar_item_buffer, GL_STATIC_DRAW);
     }
 }
