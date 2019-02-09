@@ -15,7 +15,7 @@ void entity_move(entity *e, void *w, vec3 *delta_pos)
             {
                 for (int z = roundf(e->box.min.z) - 1; z <= roundf(e->box.max.z) + 1; z++)
                 {
-                    if (world_get_block(w, x, y, z) == AIR)
+                    if (!block_is_obstacle(world_get_block(w, x, y, z)))
                         continue;
 
                     vec3 block_position = {x, y - 0.5f, z};

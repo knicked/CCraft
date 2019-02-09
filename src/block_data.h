@@ -13,5 +13,6 @@ extern const block_data blocks[256];
 extern bounding_box block_box;
 
 int block_is_opaque(block_id block);
+int block_is_obstacle(block_id block);
 
 #endif
