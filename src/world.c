@@ -243,11 +243,11 @@ void world_handle_input(world *w, input *i)
 
         if (i->scroll_delta < 0.0)
         {
-            w->selected_block--;
+            w->selected_block++;
         }
         else if (i->scroll_delta > 0.0)
         {
-            w->selected_block++;
+            w->selected_block--;
         }
         if (w->selected_block == 0) w->selected_block = 3 * 9;
         else if (w->selected_block == 3 * 9 + 1) w->selected_block = 1;
