@@ -35,6 +35,7 @@ typedef struct
     unsigned char num_players;
     entity player;
     int fly_mode;
+    int noclip_mode;
 
     vec3 camera_position;
     vec2 camera_rotation;
