@@ -244,6 +244,10 @@ void world_handle_input(world *w, input *i)
             else
                 printf("Fly mode turned off.\n");
         }
+        if (w->player.move_direction.x != 0.0f || w->player.move_direction.z != 0.0f)
+        {
+            normalize(&w->player.move_direction);
+        }
         if (w->fly_mode)
         {
             if (i->keys[GLFW_KEY_SPACE])
@@ -265,11 +269,6 @@ void world_handle_input(world *w, input *i)
         if (i->keys_down[GLFW_KEY_7]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 7;
         if (i->keys_down[GLFW_KEY_8]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 8;
         if (i->keys_down[GLFW_KEY_9]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 9;
-
-        if (w->player.move_direction.x != 0.0f || w->player.move_direction.y != 0.0f || w->player.move_direction.z != 0.0f)
-        {
-            normalize(&w->player.move_direction);
-        }
 
         if (i->scroll_delta < 0.0)
         {
@@ -297,7 +296,9 @@ void world_tick(world *w)
 {
     if (w->fly_mode)
     {
-        multiply_v3f(&w->player.velocity, &w->player.velocity, 0.91f);
+        w->player.velocity.x *= 0.91f;
+        w->player.velocity.z *= 0.91f;
+        w->player.velocity.y *= 0.6f;
     }
     else
     {
@@ -342,7 +343,11 @@ void world_tick(world *w)
 
     vec3 velocity_change = {0.0f};
     if (w->fly_mode)
-        multiply_v3f(&velocity_change, &w->player.move_direction, 0.1f);
+    {
+        velocity_change.x = w->player.move_direction.x * 0.1f;
+        velocity_change.z = w->player.move_direction.z * 0.1f;
+        velocity_change.y = w->player.move_direction.y * 0.2f;
+    }
     else
         multiply_v3f(&velocity_change, &w->player.move_direction, w->player.on_ground ? 0.1f : 0.02f);
     add_v3(&w->player.velocity, &w->player.velocity, &velocity_change);
