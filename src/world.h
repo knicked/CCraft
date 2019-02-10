@@ -33,6 +33,7 @@ typedef struct
     network_player players[MAX_PLAYERS];
     unsigned char num_players;
     entity player;
+    int fly_mode;
 
     vec3 camera_position;
     vec2 camera_rotation;

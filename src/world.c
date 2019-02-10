@@ -161,6 +161,7 @@ void world_init(world *w)
     glEnableVertexAttribArray(w->lines_shader.position_location);
 
     w->num_players = 0;
+    w->fly_mode = 0;
 }
 
 void world_generate(world *w)
@@ -235,6 +236,25 @@ void world_handle_input(world *w, input *i)
             w->player.move_direction.x += cosf(RADIANS(w->camera_rotation.y));
             w->player.move_direction.z -= sinf(RADIANS(w->camera_rotation.y));
         }
+        if (i->keys_down[GLFW_KEY_F])
+        {
+            w->fly_mode = !w->fly_mode;
+            if (w->fly_mode)
+                printf("Fly mode turned on.\n");
+            else
+                printf("Fly mode turned off.\n");
+        }
+        if (w->fly_mode)
+        {
+            if (i->keys[GLFW_KEY_SPACE])
+            {
+                w->player.move_direction.y += 1.0f;
+            }
+            if (i->keys[GLFW_KEY_LEFT_SHIFT])
+            {
+                w->player.move_direction.y -= 1.0f;
+            }
+        }
 
         if (w->player.move_direction.x != 0.0f || w->player.move_direction.y != 0.0f || w->player.move_direction.z != 0.0f)
         {
@@ -265,14 +285,21 @@ void world_handle_input(world *w, input *i)
 
 void world_tick(world *w)
 {
-    w->player.velocity.y -= 0.08f;
-    w->player.velocity.y *= 0.98f;
+    if (w->fly_mode)
+    {
+        multiply_v3f(&w->player.velocity, &w->player.velocity, 0.91f);
+    }
+    else
+    {
+        w->player.velocity.y -= 0.08f;
+        w->player.velocity.y *= 0.98f;
 
-    if (w->player.jumping && w->player.on_ground)
-        w->player.velocity.y += 0.5f;
+        if (w->player.jumping && w->player.on_ground)
+            w->player.velocity.y += 0.5f;
 
-    w->player.velocity.x *= w->player.on_ground ? 0.6f : 0.91f;
-    w->player.velocity.z *= w->player.on_ground ? 0.6f : 0.91f;
+        w->player.velocity.x *= w->player.on_ground ? 0.6f : 0.91f;
+        w->player.velocity.z *= w->player.on_ground ? 0.6f : 0.91f;
+    }
 
     w->block_changed = 0;
     if (w->block_in_range)
@@ -304,7 +331,10 @@ void world_tick(world *w)
     w->placing_block = 0;
 
     vec3 velocity_change = {0.0f};
-    multiply_v3f(&velocity_change, &w->player.move_direction, w->player.on_ground ? 0.1f : 0.02f);
+    if (w->fly_mode)
+        multiply_v3f(&velocity_change, &w->player.move_direction, 0.1f);
+    else
+        multiply_v3f(&velocity_change, &w->player.move_direction, w->player.on_ground ? 0.1f : 0.02f);
     add_v3(&w->player.velocity, &w->player.velocity, &velocity_change);
 }
 
