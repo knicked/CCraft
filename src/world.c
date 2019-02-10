@@ -289,6 +289,11 @@ void world_handle_input(world *w, input *i)
         {
             w->placing_block = 1;
         }
+        if (i->mouse_buttons_down[GLFW_MOUSE_BUTTON_MIDDLE])
+        {
+            block_id selected_block = world_get_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z);
+            if (selected_block != AIR) w->selected_block = selected_block;
+        }
     }
 }
 
