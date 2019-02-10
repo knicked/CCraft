@@ -256,6 +256,16 @@ void world_handle_input(world *w, input *i)
             }
         }
 
+        if (i->keys_down[GLFW_KEY_1]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 1;
+        if (i->keys_down[GLFW_KEY_2]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 2;
+        if (i->keys_down[GLFW_KEY_3]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 3;
+        if (i->keys_down[GLFW_KEY_4]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 4;
+        if (i->keys_down[GLFW_KEY_5]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 5;
+        if (i->keys_down[GLFW_KEY_6]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 6;
+        if (i->keys_down[GLFW_KEY_7]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 7;
+        if (i->keys_down[GLFW_KEY_8]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 8;
+        if (i->keys_down[GLFW_KEY_9]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 9;
+
         if (w->player.move_direction.x != 0.0f || w->player.move_direction.y != 0.0f || w->player.move_direction.z != 0.0f)
         {
             normalize(&w->player.move_direction);
