@@ -17,7 +17,7 @@
 #include "block.h"
 
 #define MAX_PLAYERS 32
-#define DATA_BUFFER_SIZE 4096
+#define DATA_BUFFER_SIZE 32768
 
 #define SET_BLOCK_ID 0
 #define SPAWN_PLAYER_ID 1

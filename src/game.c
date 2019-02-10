@@ -4,6 +4,54 @@
 #include <stdlib.h>
 #include <math.h>
 
+int recv_all(SOCKET s, char *buf, size_t buf_size)
+{
+    int data_size = recv(s, buf, buf_size, 0);
+    int data_position = 0;
+
+    if (data_size == 0)
+        return 0;
+
+    while (data_position < data_size)
+    {
+        switch (buf[data_position])
+        {
+            case SET_BLOCK_ID:
+            {
+                data_position += sizeof(set_block_packet);
+            }
+            break;
+            case SPAWN_PLAYER_ID:
+            {
+                data_position += sizeof(spawn_player_packet);
+            }
+            break;
+            case DESPAWN_PLAYER_ID:
+            {
+                data_position += sizeof(despawn_player_packet);
+            }
+            break;
+            case POSITION_UPDATE_ID:
+            {
+                data_position += sizeof(position_update_packet);
+            }
+            break;
+            case CHUNK_DATA_ID:
+            {
+                data_position += sizeof(chunk_data_packet);
+            }
+            break;
+        }
+
+        while (data_size < data_position)
+        {
+            data_size += recv(s, buf + data_size, buf_size - data_size, 0);
+        }
+    }
+
+    return data_size;
+}
+
 void game_init(game *g, GLFWwindow *window)
 {
     g->window = window;
@@ -106,7 +154,7 @@ void game_tick(game *g)
         {
             int data_size = 0;
             int data_position = 0;
-            if (SOCKET_VALID(data_size = recv(g->server_socket, g->buffer, DATA_BUFFER_SIZE, 0)))
+            if (SOCKET_VALID(data_size = recv_all(g->server_socket, g->buffer, DATA_BUFFER_SIZE)))
             {
                 if (data_size == 0)
                 {
