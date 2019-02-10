@@ -256,15 +256,15 @@ void world_handle_input(world *w, input *i)
             }
         }
 
-        if (i->keys_down[GLFW_KEY_1]) w->selected_block = get_current_blocks_bar(w) * 9 + 1;
-        if (i->keys_down[GLFW_KEY_2]) w->selected_block = get_current_blocks_bar(w) * 9 + 2;
-        if (i->keys_down[GLFW_KEY_3]) w->selected_block = get_current_blocks_bar(w) * 9 + 3;
-        if (i->keys_down[GLFW_KEY_4]) w->selected_block = get_current_blocks_bar(w) * 9 + 4;
-        if (i->keys_down[GLFW_KEY_5]) w->selected_block = get_current_blocks_bar(w) * 9 + 5;
-        if (i->keys_down[GLFW_KEY_6]) w->selected_block = get_current_blocks_bar(w) * 9 + 6;
-        if (i->keys_down[GLFW_KEY_7]) w->selected_block = get_current_blocks_bar(w) * 9 + 7;
-        if (i->keys_down[GLFW_KEY_8]) w->selected_block = get_current_blocks_bar(w) * 9 + 8;
-        if (i->keys_down[GLFW_KEY_9]) w->selected_block = get_current_blocks_bar(w) * 9 + 9;
+        if (i->keys_down[GLFW_KEY_1]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 1;
+        if (i->keys_down[GLFW_KEY_2]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 2;
+        if (i->keys_down[GLFW_KEY_3]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 3;
+        if (i->keys_down[GLFW_KEY_4]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 4;
+        if (i->keys_down[GLFW_KEY_5]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 5;
+        if (i->keys_down[GLFW_KEY_6]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 6;
+        if (i->keys_down[GLFW_KEY_7]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 7;
+        if (i->keys_down[GLFW_KEY_8]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 8;
+        if (i->keys_down[GLFW_KEY_9]) w->selected_block = GET_CURRENT_HOTBAR(w) * 9 + 9;
 
         if (w->player.move_direction.x != 0.0f || w->player.move_direction.y != 0.0f || w->player.move_direction.z != 0.0f)
         {
@@ -548,11 +548,4 @@ void world_set_block(world *w, int x, int y, int z, block_id new_block)
         else if (block_z == CHUNK_SIZE - 1) w->chunks[chunk_x * WORLD_SIZE + (chunk_z == WORLD_SIZE - 1 ? chunk_z : chunk_z + 1)].dirty = 1;
         c->dirty = 1;
     }
-}
-
-int get_current_blocks_bar(world *w) {
-    int selected = w->selected_block;
-    if (selected < 9) return 0;
-    if (selected < 2 * 9) return 1;
-    if (selected < 3 * 9) return 2;
 }
