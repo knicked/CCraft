@@ -2,6 +2,7 @@
 #define SOCKETS_H
 
 #ifdef _WIN32
+    #define _WIN32_WINNT 0x0501
     #include <winsock2.h>
     #include <Ws2tcpip.h>
     #define SOCKET_VALID(s) ((s) != INVALID_SOCKET)
