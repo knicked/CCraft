@@ -379,9 +379,12 @@ void world_draw(world *w, double delta_time, double time_since_tick)
     vec3 player_delta;
     multiply_v3f(&player_delta, &w->player.velocity, tick_delta_time);
 
-    if (w->noclip_mode) {
+    if (w->noclip_mode)
+    {
         add_v3(&w->player.position, &w->player.position, &player_delta);
-    } else {
+    }
+    else
+    {
         entity_move(&w->player, w, &player_delta);
 
         w->player.on_ground = 0;
