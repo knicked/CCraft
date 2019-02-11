@@ -19,6 +19,8 @@ typedef struct
     GLuint vao;
     GLuint vbo;
     GLuint vert_count;
+    GLint water_offset;
+    GLuint water_count;
 } chunk;
 
 void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer);

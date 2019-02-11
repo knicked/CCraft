@@ -459,6 +459,19 @@ void world_draw(world *w, double delta_time, double time_since_tick)
         }
     }
 
+    for (int x = -WORLD_SIZE / 2; x < WORLD_SIZE - WORLD_SIZE / 2; x++)
+    {
+        for (int z = -WORLD_SIZE / 2; z < WORLD_SIZE - WORLD_SIZE / 2; z++)
+        {
+            chunk *c = &w->chunks[(x + WORLD_SIZE / 2) * WORLD_SIZE + z + WORLD_SIZE / 2];
+            vec3 chunk_translation = {x * CHUNK_SIZE, 0.0f, z * CHUNK_SIZE};
+            translate(&w->blocks_model, &chunk_translation);
+            glUniformMatrix4fv(w->blocks_shader.model_location, 1, GL_FALSE, w->blocks_model.value);
+            glBindVertexArray(c->vao);
+            glDrawArrays(GL_TRIANGLES, c->water_offset, c->water_count);
+        }
+    }
+
     glUseProgram(w->lines_shader.program);
 
     glUniformMatrix4fv(w->lines_shader.projection_location, 1, GL_FALSE, w->world_projection.value);

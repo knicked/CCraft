@@ -14,5 +14,6 @@ extern bounding_box block_box;
 
 int block_is_opaque(block_id block);
 int block_is_obstacle(block_id block);
+int block_connects(block_id block);
 
 #endif

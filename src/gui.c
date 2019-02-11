@@ -147,7 +147,7 @@ void gui_draw(gui *g)
         multiply(&model, &TEMP_MAT, &model);
 
         glUniformMatrix4fv(g->w->blocks_shader.model_location, 1, GL_FALSE, model.value);
-        glBindVertexArray(g->hotbar_item_vaos[i + 1 + (g->w->selected_block - 1) / 9 * 9]);
+        glBindVertexArray(g->hotbar_item_vaos[i + 1 + GET_CURRENT_HOTBAR(g->w) * 9]);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 }

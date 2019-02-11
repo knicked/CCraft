@@ -180,7 +180,7 @@ int make_block(block_vertex *data, vec3 position, block_id block, block_id neigh
     {
         for (int i = 0; i < 6; i++)
         {
-            if (!block_is_opaque(neighbours[i]) && (block != GLASS || neighbours[i] != GLASS))
+            if (!block_is_opaque(neighbours[i]) && (block != neighbours[i] || !block_connects(block)))
             {
                 float tex_x = blocks[block].face_tiles[i] % 16;
                 float tex_y = blocks[block].face_tiles[i] / 16;

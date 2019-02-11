@@ -20,7 +20,8 @@ void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer)
         {
             for (int z = 0; z < CHUNK_SIZE; z++)
             {
-                if (c->blocks[x][y][z] != AIR)
+                block_id b = c->blocks[x][y][z];
+                if (b != AIR && b != STILL_WATER && b != FLOWING_WATER)
                 {
                     neighbours[0] = world_get_block((world *) w, x + x_off, y, z + z_off + 1);
                     neighbours[1] = world_get_block((world *) w, x + x_off, y, z + z_off - 1);
@@ -29,13 +30,38 @@ void chunk_build_buffer(chunk *c, void *w, block_vertex *data_buffer)
                     neighbours[4] = world_get_block((world *) w, x + x_off, y + 1, z + z_off);
                     neighbours[5] = world_get_block((world *) w, x + x_off, y - 1, z + z_off);
 
-                    c->vert_count += make_block(data_buffer + c->vert_count, (vec3){x, y, z}, c->blocks[x][y][z], neighbours);
+                    c->vert_count += make_block(data_buffer + c->vert_count, (vec3){x, y, z}, b, neighbours);
                 }
             }
         }
     }
 
-    glBufferData(GL_ARRAY_BUFFER, c->vert_count * sizeof(block_vertex), data_buffer, GL_STATIC_DRAW);
+    c->water_offset = c->vert_count;
+    c->water_count = 0;
+
+    for (int x = 0; x < CHUNK_SIZE; x++)
+    {
+        for (int y = 0; y < WORLD_HEIGHT; y++)
+        {
+            for (int z = 0; z < CHUNK_SIZE; z++)
+            {
+                block_id b = c->blocks[x][y][z];
+                if (b == STILL_WATER || b == FLOWING_WATER)
+                {
+                    neighbours[0] = world_get_block((world *) w, x + x_off, y, z + z_off + 1);
+                    neighbours[1] = world_get_block((world *) w, x + x_off, y, z + z_off - 1);
+                    neighbours[2] = world_get_block((world *) w, x + x_off + 1, y, z + z_off);
+                    neighbours[3] = world_get_block((world *) w, x + x_off - 1, y, z + z_off);
+                    neighbours[4] = world_get_block((world *) w, x + x_off, y + 1, z + z_off);
+                    neighbours[5] = world_get_block((world *) w, x + x_off, y - 1, z + z_off);
+
+                    c->water_count += make_block(data_buffer + c->vert_count + c->water_count, (vec3){x, y, z}, b, neighbours);
+                }
+            }
+        }
+    }
+
+    glBufferData(GL_ARRAY_BUFFER, (c->vert_count + c->water_count) * sizeof(block_vertex), data_buffer, GL_STATIC_DRAW);
 
     c->dirty = 0;
 }
