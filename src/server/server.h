@@ -24,6 +24,7 @@ typedef struct
     short z;
     unsigned short chunk_data_sent[WORLD_SIZE][WORLD_SIZE];
     unsigned char id;
+    SOCKET socket;
 } player;
 
 typedef struct
@@ -36,6 +37,7 @@ typedef struct
 
     player players[MAX_PLAYERS];
     unsigned int num_players;
+    int ids_used[256];
 
     char *buffer;
     z_stream def_stream;

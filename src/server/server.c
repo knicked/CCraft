@@ -16,6 +16,7 @@ void server_init(server *s, unsigned short port)
     s->buffer = malloc(DATA_BUFFER_SIZE);
     s->chunks = malloc(WORLD_SIZE * WORLD_SIZE * sizeof(chunk));
     memset(s->chunks, AIR, WORLD_SIZE * WORLD_SIZE * sizeof(chunk));
+    memset(s->ids_used, 0, sizeof(s->ids_used));
 
     static const int GRASS_LEVEL = 40;
 
@@ -77,6 +78,89 @@ void server_init(server *s, unsigned short port)
     s->num_players = 0;
 }
 
+int find_player_by_socket(server *s, SOCKET socket)
+{
+    int index = -1;
+    for (int i = 0; i < s->num_players; i++)
+    {
+        if (s->players[i].socket == socket)
+        {
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
+
+void spawn_player(server *s, SOCKET player_socket)
+{
+    FD_SET(player_socket, &s->sockets);
+    if (player_socket > s->max_fd) s->max_fd = player_socket;
+
+    player *new_player = &s->players[s->num_players];
+    memset(new_player, 0, sizeof(player));
+
+    new_player->socket = player_socket;
+
+    for (unsigned char i = 0; i < 255; i++)
+    {
+        if (!s->ids_used[i])
+        {
+            new_player->id = i;
+            s->ids_used[i] = 1;
+            break;
+        }
+    }
+
+    spawn_player_packet packet;
+    packet.id = SPAWN_PLAYER_ID;
+    packet.player_id = new_player->id;
+    for (int i = 0; i <= s->max_fd; i++)
+    {
+        if (i != s->listener && i != player_socket)
+        {
+            send(i, &packet, sizeof(packet), 0);
+        }
+    }
+
+    for (int i = 0; i < s->num_players; i++)
+    {
+        packet.player_id = s->players[i].id;
+        send(player_socket, &packet, sizeof(packet), 0);
+    }
+
+    printf("Player %d joined the game.\n", new_player->id);
+
+    s->num_players++;
+}
+
+void despawn_player(server *s, int player_index)
+{
+    player *p = &s->players[player_index];
+
+    printf("Player %d left the game.\n", p->id);
+    close(p->socket);
+    FD_CLR(p->socket, &s->sockets);
+
+    despawn_player_packet packet;
+    packet.id = DESPAWN_PLAYER_ID;
+    packet.player_id = p->id;
+
+    for (int i = player_index; i < s->num_players - 1; i++)
+    {
+        s->players[i] = s->players[i + 1];
+    }
+    s->num_players--;
+
+    for (int i = 0; i < s->num_players; i++)
+    {
+        send(s->players[i].socket, &packet, sizeof(packet), 0);
+    }
+
+    s->ids_used[p->id] = 0;
+}
+
 void server_tick(server *s)
 {
     fd_set read_fds = s->sockets;
@@ -94,29 +178,7 @@ void server_tick(server *s)
                     struct sockaddr_storage client_addr;
                     socklen_t addr_len = sizeof(client_addr);
                     SOCKET new_fd = accept(s->listener, (struct sockaddr *) &client_addr, &addr_len);
-                    FD_SET(new_fd, &s->sockets);
-                    if (new_fd > s->max_fd) s->max_fd = new_fd;
-                    printf("New connection!\n");
-                    spawn_player_packet packet;
-                    packet.id = SPAWN_PLAYER_ID;
-                    packet.player_id = new_fd;
-                    for (int j = 0; j <= s->max_fd; j++)
-                    {
-                        if (j != s->listener && j != new_fd)
-                        {
-                            send(j, &packet, sizeof(packet), 0);
-                        }
-                    }
-                    for (int j = 0; j < s->num_players; j++)
-                    {
-                        packet.id = SPAWN_PLAYER_ID;
-                        packet.player_id = s->players[j].id;
-                        send(new_fd, &packet, sizeof(packet), 0);
-                    }
-                    memset(&s->players[s->num_players], 0, sizeof(player));
-                    s->players[s->num_players].id = new_fd;
-                    s->num_players++;
-
+                    spawn_player(s, new_fd);
                 }
                 else
                 {
@@ -126,32 +188,10 @@ void server_tick(server *s)
                     {
                         if (data_size == 0)
                         {
-                            printf("Client disconnected.\n");
-                            close(i);
-                            FD_CLR(i, &s->sockets);
-                            int index;
-                            for (int j = 0; j < s->num_players; j++)
+                            int index = find_player_by_socket(s, i);
+                            if (index != -1)
                             {
-                                if (s->players[j].id == i)
-                                {
-                                    index = j;
-                                    break;
-                                }
-                            }
-                            for (int j = index; j < s->num_players - 1; j++)
-                            {
-                                s->players[j] = s->players[j + 1];
-                            }
-                            s->num_players--;
-                            despawn_player_packet packet;
-                            packet.id = DESPAWN_PLAYER_ID;
-                            packet.player_id = i;
-                            for (int j = 0; j <= s->max_fd; j++)
-                            {
-                                if (j != s->listener && j != i)
-                                {
-                                    send(j, &packet, sizeof(packet), 0);
-                                }
+                                despawn_player(s, index);
                             }
                         }
                         else
@@ -163,26 +203,42 @@ void server_tick(server *s)
                                     case SET_BLOCK_ID:
                                     {
                                         set_block_packet *packet = (set_block_packet *) (s->buffer + data_position);
-                                        for (int j = 0; j <= s->max_fd; j++)
+
+                                        short x = ntohs(packet->x);
+                                        short y = ntohs(packet->y);
+                                        short z = ntohs(packet->z);
+
+                                        if (y >= WORLD_HEIGHT || y < 0 ||
+                                            x >= CHUNK_SIZE * WORLD_SIZE / 2 || x <= -CHUNK_SIZE * WORLD_SIZE / 2 ||
+                                            z >= CHUNK_SIZE * WORLD_SIZE / 2 || z <= -CHUNK_SIZE * WORLD_SIZE / 2)
                                         {
-                                            if (j != s->listener && j != i)
+                                            int index = find_player_by_socket(s, i);
+                                            if (index != -1)
                                             {
-                                                send(j, packet, sizeof(set_block_packet), 0);
+                                                printf("Player %d has tried to set a block at invalid coordinates, kicking him...\n", s->players[index].id);
+                                                despawn_player(s, index);
                                             }
                                         }
-                                        packet->x = (short) ntohs(packet->x);
-                                        packet->y = (short) ntohs(packet->y);
-                                        packet->z = (short) ntohs(packet->z);
+                                        else
+                                        {
+                                            for (int j = 0; j <= s->max_fd; j++)
+                                            {
+                                                if (j != s->listener && j != i)
+                                                {
+                                                    send(j, packet, sizeof(set_block_packet), 0);
+                                                }
+                                            }
 
-                                        size_t chunk_x = CHUNK_FROM_WORLD_COORDS(packet->x);
-                                        size_t chunk_z = CHUNK_FROM_WORLD_COORDS(packet->z);
-                                        chunk *c = &s->chunks[chunk_x * WORLD_SIZE + chunk_z];
+                                            size_t chunk_x = CHUNK_FROM_WORLD_COORDS(x);
+                                            size_t chunk_z = CHUNK_FROM_WORLD_COORDS(z);
+                                            chunk *c = &s->chunks[chunk_x * WORLD_SIZE + chunk_z];
 
-                                        size_t block_x = WORLD_TO_CHUNK(packet->x);
-                                        size_t block_z = WORLD_TO_CHUNK(packet->z);
-                                        c->blocks[block_x][packet->y][block_z] = packet->block;
+                                            size_t block_x = WORLD_TO_CHUNK(x);
+                                            size_t block_z = WORLD_TO_CHUNK(z);
+                                            c->blocks[block_x][y][block_z] = packet->block;
 
-                                        printf("The block at %d/%d/%d has been set to %d\n", packet->x, packet->y, packet->z, packet->block);
+                                            printf("The block at %d/%d/%d has been set to %d\n", x, y, z, packet->block);
+                                        }
                                         data_position += sizeof(set_block_packet);
                                     }
                                     break;
@@ -191,7 +247,7 @@ void server_tick(server *s)
                                         position_update_packet *packet = (position_update_packet *) (s->buffer + data_position);
                                         for (int j = 0; j < s->num_players; j++)
                                         {
-                                            if (s->players[j].id == i)
+                                            if (s->players[j].socket == i)
                                             {
                                                 s->players[j].x = ntohs(packet->x);
                                                 s->players[j].y = ntohs(packet->y);
@@ -280,7 +336,7 @@ void server_tick(server *s)
                 s->players[i].chunk_data_sent[chunk_to_send_x][chunk_to_send_z] += s->def_stream.total_in;
                 bytes_to_send += sizeof(chunk_data_packet);
             }
-            send(s->players[i].id, s->buffer, bytes_to_send, 0);
+            send(s->players[i].socket, s->buffer, bytes_to_send, 0);
         }
     }
 }
