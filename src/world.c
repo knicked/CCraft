@@ -162,6 +162,7 @@ void world_init(world *w)
 
     w->num_players = 0;
     w->fly_mode = 0;
+    w->noclip_mode = 0;
 }
 
 void world_generate(world *w)
@@ -238,11 +239,21 @@ void world_handle_input(world *w, input *i)
         }
         if (i->keys_down[GLFW_KEY_F])
         {
+            if (w->noclip_mode) return;
             w->fly_mode = !w->fly_mode;
             if (w->fly_mode)
                 printf("Fly mode turned on.\n");
             else
                 printf("Fly mode turned off.\n");
+        }
+        if (i->keys_down[GLFW_KEY_N])
+        {
+            w->fly_mode = 1;
+            w->noclip_mode = !w->noclip_mode;
+            if (w->noclip_mode)
+                printf("Noclip mode turned on.\n");
+            else
+                printf("Noclip mode turned off.\n");
         }
         if (w->player.move_direction.x != 0.0f || w->player.move_direction.z != 0.0f)
         {
@@ -366,27 +377,32 @@ void world_draw(world *w, double delta_time, double time_since_tick)
 
     vec3 player_delta;
     multiply_v3f(&player_delta, &w->player.velocity, tick_delta_time);
-    entity_move(&w->player, w, &player_delta);
 
-    w->player.on_ground = 0;
-    for (int x = roundf(w->player.box.min.x); x <= roundf(w->player.box.max.x); x++)
-    {
-        for (int z = roundf(w->player.box.min.z); z <= roundf(w->player.box.max.z); z++)
+    if (w->noclip_mode) {
+        add_v3(&w->player.position, &w->player.position, &player_delta);
+    } else {
+        entity_move(&w->player, w, &player_delta);
+
+        w->player.on_ground = 0;
+        for (int x = roundf(w->player.box.min.x); x <= roundf(w->player.box.max.x); x++)
         {
-            if (world_get_block(w, x, roundf(w->player.position.y - 0.5f), z) == AIR)
-                continue;
-            vec3 block_position = {x, roundf(w->player.position.y) - 1.5f, z};
-            bounding_box_update(&block_box, &block_position);
-            if (is_touching(&w->player.box, &block_box))
+            for (int z = roundf(w->player.box.min.z); z <= roundf(w->player.box.max.z); z++)
             {
-                w->player.on_ground = 1;
-                break;
+                if (world_get_block(w, x, roundf(w->player.position.y - 0.5f), z) == AIR)
+                    continue;
+                vec3 block_position = {x, roundf(w->player.position.y) - 1.5f, z};
+                bounding_box_update(&block_box, &block_position);
+                if (is_touching(&w->player.box, &block_box))
+                {
+                    w->player.on_ground = 1;
+                    break;
+                }
             }
+            if (w->player.on_ground) break;
         }
-        if (w->player.on_ground) break;
-    }
 
-    multiply_v3f(&w->player.velocity, &player_delta, 1.0f / tick_delta_time);
+        multiply_v3f(&w->player.velocity, &player_delta, 1.0f / tick_delta_time);
+    }
 
     w->camera_position.x = w->player.position.x;
     w->camera_position.z = w->player.position.z;
