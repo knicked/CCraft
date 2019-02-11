@@ -413,6 +413,8 @@ void world_draw(world *w, double delta_time, double time_since_tick)
     glClearColor(0.6f, 0.7f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glEnable(GL_DEPTH_TEST);
+
     vec3 view_translation;
     multiply_v3f(&view_translation, &w->camera_position, -1.0f);
     translate(&w->world_view, &view_translation);

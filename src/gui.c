@@ -107,6 +107,8 @@ void gui_handle_input(gui *g, input *i)
 
 void gui_draw(gui *g)
 {
+    glDisable(GL_DEPTH_TEST);
+
     glUseProgram(g->gui_shader.program);
     glUniform1i(g->gui_shader.texture_location, 1);
 
