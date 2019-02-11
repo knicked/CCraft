@@ -301,8 +301,8 @@ void world_tick(world *w)
 {
     if (w->fly_mode)
     {
-        w->player.velocity.x *= 0.91f;
-        w->player.velocity.z *= 0.91f;
+        w->player.velocity.x *= 0.85f;
+        w->player.velocity.z *= 0.85f;
         w->player.velocity.y *= 0.6f;
     }
     else
