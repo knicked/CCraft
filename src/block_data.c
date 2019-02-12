@@ -70,3 +70,14 @@ int block_connects(block_id block)
             return 0;
     }
 }
+
+int block_can_be_placed_on(block_id ground, block_id block)
+{
+    switch (block)
+    {
+        case SAPLING:
+            return ground == GRASS;
+        default:
+            return 1;
+    }
+}
