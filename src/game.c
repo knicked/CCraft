@@ -43,9 +43,9 @@ int recv_all(SOCKET s, char *buf, size_t buf_size)
             break;
         }
 
-        while (data_size < data_position)
+        if (data_size < data_position)
         {
-            data_size += recv(s, buf + data_size, buf_size - data_size, 0);
+            data_size += recv(s, buf + data_size, data_position - data_size, 0);
         }
     }
 
