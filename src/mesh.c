@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include <string.h>
+
 int make_block(block_vertex *data, vec3 position, block_id block, block_id neighbours[6])
 {
     static vec3 cube_positions[][4] = {
@@ -239,4 +241,92 @@ void make_frame(vec3 *data, vec3 *position, bounding_box *box)
         data->z = positions[indices[i]].z * box->size.z + position->z;
         data++;
     }
+}
+
+int make_text(gui_vertex *data, const char *text)
+{
+    static const vec2 positions[] =
+    {
+        {0.0f, 0.0f},
+        {8.0f, 0.0f},
+        {8.0f, 8.0f},
+        {0.0f, 8.0f},
+    };
+
+    static const vec2 tex_coords[] =
+    {
+        {0.0f, 1.0f},
+        {1.0f, 1.0f},
+        {1.0f, 0.0f},
+        {0.0f, 0.0f},
+    };
+
+    static const GLushort indices[] =
+    {
+        0, 1, 2, 2, 3, 0
+    };
+
+    static const int char_widths[256] =
+    {
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 2, 5, 6, 6, 6, 6, 3, 5, 5, 5, 6, 2, 6, 2, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        7, 6, 6, 6, 6, 6, 6, 6, 6, 4, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 5, 6, 6, 2, 6, 5, 3, 6, 6, 6,
+        6, 6, 6, 6, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+    };
+
+    int vert_count = 0;
+
+    int x = 0;
+    int y = 0;
+
+    for (int i = 0; text[i] != '\0'; i++)
+    {
+        if (text[i] == '\n')
+        {
+            y -= 9;
+            x = 0;
+            continue;
+        }
+        if (text[i] == ' ')
+        {
+            x += 4;
+            continue;
+        }
+        for (int j = 0; j < 6; j++)
+        {
+            data->position.x = positions[indices[j]].x + x + 1;
+            data->position.y = positions[indices[j]].y + y - 1;
+            data->tex_coord.x = (text[i] % 16 + tex_coords[indices[j]].x) / 16.0f;
+            data->tex_coord.y = (text[i] / 16 + tex_coords[indices[j]].y) / 16.0f;
+            data->tex_id = 1;
+            data->color = (vec3) {0.3f, 0.3f, 0.3f};
+            data++;
+            vert_count++;
+        }
+        for (int j = 0; j < 6; j++)
+        {
+            data->position.x = positions[indices[j]].x + x;
+            data->position.y = positions[indices[j]].y + y;
+            data->tex_coord.x = (text[i] % 16 + tex_coords[indices[j]].x) / 16.0f;
+            data->tex_coord.y = (text[i] / 16 + tex_coords[indices[j]].y) / 16.0f;
+            data->tex_id = 1;
+            data->color = VEC3_ONE;
+            data++;
+            vert_count++;
+        }
+        x += char_widths[text[i]];
+    }
+    return vert_count;
 }

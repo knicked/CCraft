@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "CCraft 0.0.0", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(1280, 720, "CCraft", NULL, NULL);
     if (!window)
     {
         printf("Couldn't create the window.\n");

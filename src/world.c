@@ -237,23 +237,14 @@ void world_handle_input(world *w, input *i)
             w->player.move_direction.x += cosf(RADIANS(w->camera_rotation.y));
             w->player.move_direction.z -= sinf(RADIANS(w->camera_rotation.y));
         }
-        if (i->keys_down[GLFW_KEY_F])
+        if (i->keys_down[GLFW_KEY_F] && !w->noclip_mode)
         {
-            if (w->noclip_mode) return;
             w->fly_mode = !w->fly_mode;
-            if (w->fly_mode)
-                printf("Fly mode turned on.\n");
-            else
-                printf("Fly mode turned off.\n");
         }
         if (i->keys_down[GLFW_KEY_N])
         {
             w->fly_mode = 1;
             w->noclip_mode = !w->noclip_mode;
-            if (w->noclip_mode)
-                printf("Noclip mode turned on.\n");
-            else
-                printf("Noclip mode turned off.\n");
         }
         if (w->player.move_direction.x != 0.0f || w->player.move_direction.z != 0.0f)
         {

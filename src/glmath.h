@@ -27,6 +27,8 @@ static vec3 AXIS_UP = {0.0f, 1.0f, 0.0f};
 static vec3 AXIS_RIGHT = {1.0f, 0.0f, 0.0f};
 static vec3 AXIS_FRONT = {0.0f, 0.0f, 1.0f};
 
+static vec3 VEC3_ONE = {1.0f, 1.0f, 1.0f};
+
 static mat4 TEMP_MAT;
 
 float lerp(float a, float b, float t);

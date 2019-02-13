@@ -14,6 +14,8 @@ typedef struct
     world w;
     gui gui;
 
+    gui_text *debug_text;
+
     int online;
     char *buffer;
     z_stream inf_stream;

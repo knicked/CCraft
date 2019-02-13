@@ -68,6 +68,8 @@ void game_init(game *g, GLFWwindow *window)
     world_init(&g->w);
     gui_init(&g->gui, &g->w);
 
+    g->debug_text = gui_create_text(&g->gui);
+
     if (g->online)
     {
         printf("Connecting to the server...\n");
@@ -299,6 +301,18 @@ void game_tick(game *g)
 void game_draw(game *g, double delta_time, double time_since_tick)
 {
     glViewport(0, 0, g->window_width, g->window_height);
+
+    char text[128];
+    sprintf(text, "CCraft 0.0.0\n%d fps\n", (int) roundf(1.0f / delta_time));
+    if (g->w.noclip_mode)
+        strcat(text, "Noclip mode\n");
+    else if (g->w.fly_mode)
+        strcat(text, "Fly mode\n");
+    gui_set_text(g->debug_text, text);
+    g->debug_text->position = (vec2) {
+        -g->window_width / 2.0f / g->gui.scale + 2.0f,
+        g->window_height / 2.0f / g->gui.scale - 10.0f,
+    };
 
     world_draw(&g->w, delta_time, time_since_tick);
     gui_draw(&g->gui);
