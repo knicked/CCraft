@@ -52,13 +52,13 @@ int make_block(block_vertex *data, vec3 position, block_id block, block_id neigh
     };
     static const vec3 cube_normals[] = {
         //front face
-        { 0.0f, 0.0f,-1.0f},
-        //back face
         { 0.0f, 0.0f, 1.0f},
+        //back face
+        { 0.0f, 0.0f,-1.0f},
         //right face
-        { 1.0f, 0.0f, 0.0f},
-        //left face
         {-1.0f, 0.0f, 0.0f},
+        //left face
+        { 1.0f, 0.0f, 0.0f},
         //top face
         { 0.0f, 1.0f, 0.0f},
         //bottom face

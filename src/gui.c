@@ -166,6 +166,31 @@ void gui_draw(gui *g)
 {
     glDisable(GL_DEPTH_TEST);
 
+    glUseProgram(g->w->blocks_shader.program);
+
+    mat4 model;
+    identity(&model);
+
+    vec3 translation = {1.1f, -1.2f, -1.3f};
+    rotate(&TEMP_MAT, &AXIS_UP, RADIANS(45.0f));
+    multiply(&model, &TEMP_MAT, &model);
+
+    translate(&TEMP_MAT, &translation);
+    multiply(&model, &TEMP_MAT, &model);
+
+    rotate(&TEMP_MAT, &AXIS_RIGHT, RADIANS(-g->w->camera_rotation.x));
+    multiply(&model, &TEMP_MAT, &model);
+    rotate(&TEMP_MAT, &AXIS_UP, RADIANS(-g->w->camera_rotation.y));
+    multiply(&model, &TEMP_MAT, &model);
+
+    translate(&TEMP_MAT, &g->w->camera_position);
+    multiply(&model, &TEMP_MAT, &model);
+
+    glUniformMatrix4fv(g->w->blocks_shader.model_location, 1, GL_FALSE, model.value);
+
+    glBindVertexArray(g->hotbar_item_vaos[g->w->selected_block]);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
     glUseProgram(g->gui_shader.program);
     GLint texture_locations[] = { 1, 2 };
     glUniform1iv(g->gui_shader.texture_location, 2, texture_locations);
@@ -199,8 +224,6 @@ void gui_draw(gui *g)
 
     identity(&TEMP_MAT);
     glUniformMatrix4fv(g->w->blocks_shader.view_location, 1, GL_FALSE, TEMP_MAT.value);
-
-    mat4 model;
 
     for (int i = 0; i < 9; i++)
     {
