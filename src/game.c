@@ -63,7 +63,6 @@ void game_init(game *g, GLFWwindow *window)
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_LINE_SMOOTH);
 
     world_init(&g->w);
     gui_init(&g->gui, &g->w);
