@@ -337,7 +337,7 @@ void world_tick(world *w)
             vec3 position = {w->selected_block_x, w->selected_block_y - 0.5f, w->selected_block_z};
             bounding_box_update(&block_box, &position);
 
-            if (!is_colliding(&block_box, &w->player.box))
+            if (!block_is_obstacle(w->selected_block) || !is_colliding(&block_box, &w->player.box))
             {
                 world_set_block(w, w->selected_block_x, w->selected_block_y, w->selected_block_z, w->selected_block);
                 w->block_changed = 1;
