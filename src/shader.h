@@ -7,18 +7,12 @@ typedef struct
 {
     GLuint program;
     GLuint position_location;
-    union
-    {
-        GLuint normal_location;
-        GLuint tex_id_location;
-    };
+    GLuint normal_location;
+    GLuint tex_id_location;
     GLuint tex_coord_location;
     GLuint model_location;
-    union
-    {
-        GLuint view_location;
-        GLuint color_location;
-    };
+    GLuint view_location;
+    GLuint color_location;
     GLuint projection_location;
     GLuint texture_location;
 } shader;
