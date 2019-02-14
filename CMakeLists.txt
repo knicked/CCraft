@@ -28,6 +28,7 @@ add_executable(
 
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs" FORCE)
+set(GLFW_INSTALL OFF "Generate installation target" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "Build example apps" FORCE)
 
 add_subdirectory(deps/glfw)

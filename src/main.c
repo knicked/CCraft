@@ -117,9 +117,8 @@ int main(int argc, char **argv)
             tick_accumulator -= tick_interval;
         }
 
-        glfwPollEvents();
+        input_poll_events(&i);
         game_handle_input(&g, &i);
-        input_end_frame(&i);
 
         game_draw(&g, delta_time, tick_accumulator);
 

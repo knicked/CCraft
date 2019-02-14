@@ -29,7 +29,7 @@ typedef struct
 } input;
 
 void input_init(input *i, GLFWwindow *window);
-void input_end_frame(input *i);
+void input_poll_events(input *i);
 
 void input_lock_mouse(input *i, GLFWwindow *window);
 void input_unlock_mouse(input *i, GLFWwindow *window);

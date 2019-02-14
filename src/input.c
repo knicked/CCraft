@@ -82,10 +82,8 @@ void input_init(input *i, GLFWwindow *window)
     i->mouse_sensitivity = 0.1f;
 }
 
-void input_end_frame(input *i)
+void input_poll_events(input *i)
 {
-    subtract_v2(&i->mouse_delta, &i->last_mouse_pos, &i->mouse_pos);
-    i->last_mouse_pos = i->mouse_pos;
     i->scroll_delta = 0.0;
     for (int j = 0; j < 512; j++)
     {
@@ -97,6 +95,9 @@ void input_end_frame(input *i)
         i->mouse_buttons_down[j] = 0;
         i->mouse_buttons_up[j] = 0;
     }
+    glfwPollEvents();
+    subtract_v2(&i->mouse_delta, &i->last_mouse_pos, &i->mouse_pos);
+    i->last_mouse_pos = i->mouse_pos;
 }
 
 void input_lock_mouse(input *i, GLFWwindow *window)
