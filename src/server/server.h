@@ -24,6 +24,7 @@ typedef struct
     short z;
     unsigned short chunk_data_sent[WORLD_SIZE][WORLD_SIZE];
     unsigned char id;
+    char nickname[31];
     SOCKET socket;
 } player;
 

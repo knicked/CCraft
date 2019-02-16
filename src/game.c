@@ -78,6 +78,10 @@ void game_init(game *g, GLFWwindow *window)
         {
             printf("Successfully connected to the server.\n");
             g->buffer = malloc(DATA_BUFFER_SIZE);
+            player_identification_packet packet;
+            packet.id = PLAYER_IDENTIFICATION_ID;
+            strcpy(packet.nickname, g->player_nickname);
+            send(g->server_socket, &packet, sizeof(packet), 0);
         }
         else
         {
@@ -186,8 +190,10 @@ void game_tick(game *g)
                             {
                                 spawn_player_packet *packet = (spawn_player_packet *) (g->buffer + data_position);
                                 g->w.players[g->w.num_players].id = packet->player_id;
+                                packet->nickname[30] = '\0';
+                                strcpy(g->w.players[g->w.num_players].nickname, packet->nickname);
+                                printf("%s joined the game.\n", g->w.players[g->w.num_players].nickname);
                                 g->w.num_players++;
-                                printf("Player %d joined the game.\n", packet->player_id);
                                 data_position += sizeof(spawn_player_packet);
                             }
                             break;
@@ -203,12 +209,12 @@ void game_tick(game *g)
                                         break;
                                     }
                                 }
+                                printf("%s left the game.\n", g->w.players[index].nickname);
                                 for (int i = index; i < MAX_PLAYERS - 2; i++)
                                 {
                                     g->w.players[i] = g->w.players[i + 1];
                                 }
                                 g->w.num_players--;
-                                printf("Player %d left the game.\n", packet->player_id);
                                 data_position += sizeof(despawn_player_packet);
                             }
                             break;

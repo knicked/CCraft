@@ -19,6 +19,7 @@ typedef struct
     vec3 smoothed_position;
     vec3 prev_position;
     unsigned char id;
+    char nickname[31];
 } network_player;
 
 typedef struct

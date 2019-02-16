@@ -20,9 +20,9 @@
 
     ./CCraft
 
-Connect to a server by specifying its IP address and optionally its port (the default is 25565)
+Connect to a server by specifying its IP address and optionally its port (the default is 25565). You can also set your nickname (if not set, you will be seen as "Unnamed")
 
-    ./CCraft --ip <IP> --port <PORT>
+    ./CCraft --ip <IP> --port <PORT> --nick <NICKNAME>
     
 #### Server
 

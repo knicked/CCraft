@@ -27,6 +27,13 @@
 #define DESPAWN_PLAYER_ID 2
 #define POSITION_UPDATE_ID 3
 #define CHUNK_DATA_ID 4
+#define PLAYER_IDENTIFICATION_ID 5
+
+typedef struct
+{
+    unsigned char id;
+    char nickname[31];
+} player_identification_packet;
 
 typedef struct
 {
@@ -51,6 +58,7 @@ typedef struct
 {
     unsigned char id;
     unsigned char player_id;
+    char nickname[31];
 } spawn_player_packet;
 
 typedef struct

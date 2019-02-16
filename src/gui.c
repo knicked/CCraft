@@ -201,9 +201,11 @@ void gui_draw(gui *g)
     for (int i = 0; i < g->w->num_players; i++)
     {
         char buffer[32];
-        sprintf(buffer, "Player %d", g->w->players[i].id);
+        strcpy(buffer, g->w->players[i].nickname);
         gui_set_text(g->player_id_text, buffer, 1.0f / 8.0f);
         identity(&model);
+        rotate(&TEMP_MAT, &AXIS_RIGHT, RADIANS(-g->w->camera_rotation.x));
+        multiply(&model, &TEMP_MAT, &model);
         translation = (vec3)
         {
             -g->player_id_text->size.x / 2.0f,

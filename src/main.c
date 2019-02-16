@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 
     g.server_addr.sin_port = htons(25565);
     g.online = 0;
+    strcpy(g.player_nickname, "Unnamed");
 
     glfwSetWindowUserPointer(window, &i);
 
@@ -76,6 +77,10 @@ int main(int argc, char **argv)
             else if (strcmp(argv[i], "--port") == 0)
             {
                 g.server_addr.sin_port = htons((unsigned short) atoi(argv[i + 1]));
+            }
+            else if (strcmp(argv[i], "--nick") == 0)
+            {
+                strcpy(g.player_nickname, argv[i + 1]);
             }
         }
     }

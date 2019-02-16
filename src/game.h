@@ -21,6 +21,7 @@ typedef struct
     z_stream inf_stream;
     struct sockaddr_in server_addr;
     SOCKET server_socket;
+    char player_nickname[31];
     fd_set read_fds;
     struct timeval tv;
 } game;

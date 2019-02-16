@@ -93,15 +93,13 @@ int find_player_by_socket(server *s, SOCKET socket)
 }
 
 
-void spawn_player(server *s, SOCKET player_socket)
+void spawn_player(server *s, SOCKET player_socket, const char *nickname)
 {
-    FD_SET(player_socket, &s->sockets);
-    if (player_socket > s->max_fd) s->max_fd = player_socket;
-
     player *new_player = &s->players[s->num_players];
     memset(new_player, 0, sizeof(player));
 
     new_player->socket = player_socket;
+    strcpy(new_player->nickname, nickname);
 
     for (unsigned char i = 0; i < 255; i++)
     {
@@ -116,21 +114,20 @@ void spawn_player(server *s, SOCKET player_socket)
     spawn_player_packet packet;
     packet.id = SPAWN_PLAYER_ID;
     packet.player_id = new_player->id;
-    for (int i = 0; i <= s->max_fd; i++)
+    strcpy(packet.nickname, new_player->nickname);
+    for (int i = 0; i < s->num_players; i++)
     {
-        if (i != s->listener && i != player_socket)
-        {
-            send(i, &packet, sizeof(packet), 0);
-        }
+        send(s->players[i].socket, &packet, sizeof(packet), 0);
     }
 
     for (int i = 0; i < s->num_players; i++)
     {
         packet.player_id = s->players[i].id;
+        strcpy(packet.nickname, s->players[i].nickname);
         send(player_socket, &packet, sizeof(packet), 0);
     }
 
-    printf("Player %d joined the game.\n", new_player->id);
+    printf("%s joined the game.\n", new_player->nickname);
 
     s->num_players++;
 }
@@ -139,7 +136,7 @@ void despawn_player(server *s, int player_index)
 {
     player *p = &s->players[player_index];
 
-    printf("Player %d left the game.\n", p->id);
+    printf("%s left the game.\n", p->nickname);
     close(p->socket);
     FD_CLR(p->socket, &s->sockets);
 
@@ -178,7 +175,8 @@ void server_tick(server *s)
                     struct sockaddr_storage client_addr;
                     socklen_t addr_len = sizeof(client_addr);
                     SOCKET new_fd = accept(s->listener, (struct sockaddr *) &client_addr, &addr_len);
-                    spawn_player(s, new_fd);
+                    FD_SET(new_fd, &s->sockets);
+                    if (new_fd > s->max_fd) s->max_fd = new_fd;
                 }
                 else
                 {
@@ -200,6 +198,17 @@ void server_tick(server *s)
                             {
                                 switch (s->buffer[data_position])
                                 {
+                                    case PLAYER_IDENTIFICATION_ID:
+                                    {
+                                        player_identification_packet *packet = (player_identification_packet *) (s->buffer + data_position);
+                                        if (find_player_by_socket(s, i) == -1)
+                                        {
+                                            packet->nickname[30] = '\0';
+                                            spawn_player(s, i, packet->nickname);
+                                        }
+                                        data_position += sizeof(player_identification_packet);
+                                    }
+                                    break;
                                     case SET_BLOCK_ID:
                                     {
                                         set_block_packet *packet = (set_block_packet *) (s->buffer + data_position);
@@ -215,7 +224,7 @@ void server_tick(server *s)
                                             int index = find_player_by_socket(s, i);
                                             if (index != -1)
                                             {
-                                                printf("Player %d has tried to set a block at invalid coordinates, kicking him...\n", s->players[index].id);
+                                                printf("%s has tried to set a block at invalid coordinates, kicking him...\n", s->players[index].nickname);
                                                 despawn_player(s, index);
                                             }
                                         }
