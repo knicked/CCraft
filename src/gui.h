@@ -17,6 +17,7 @@ typedef struct
     GLuint vbo;
     GLsizei vert_count;
     vec2 position;
+    vec2 size;
     char text[256];
 } gui_text;
 
@@ -37,6 +38,7 @@ typedef struct
     gui_sprite hotbar_sprite;
     gui_sprite hotbar_selection_sprite;
 
+    gui_text *player_id_text;
     gui_text texts[32];
     unsigned int num_texts;
 
@@ -50,6 +52,6 @@ void gui_draw(gui *g);
 void gui_destroy(gui *g);
 
 gui_text *gui_create_text(gui *g);
-void gui_set_text(gui_text *text, const char *s);
+void gui_set_text(gui_text *text, const char *s, float scale);
 
 #endif

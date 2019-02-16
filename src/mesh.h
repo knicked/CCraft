@@ -21,6 +21,6 @@ typedef struct
 
 int make_block(block_vertex *data, vec3 position, block_id block, block_id neighbours[6]);
 void make_frame(vec3 *data, vec3 *position, bounding_box *box);
-int make_text(gui_vertex *data, const char *text);
+int make_text(gui_vertex *data, const char *text, float scale, vec2 *size);
 
 #endif

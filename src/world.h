@@ -15,12 +15,9 @@
 
 typedef struct
 {
-    short x;
-    short y;
-    short z;
-    short prev_x;
-    short prev_y;
-    short prev_z;
+    vec3 position;
+    vec3 smoothed_position;
+    vec3 prev_position;
     unsigned char id;
 } network_player;
 

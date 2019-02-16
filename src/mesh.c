@@ -243,14 +243,14 @@ void make_frame(vec3 *data, vec3 *position, bounding_box *box)
     }
 }
 
-int make_text(gui_vertex *data, const char *text)
+int make_text(gui_vertex *data, const char *text, float scale, vec2 *size)
 {
     static const vec2 positions[] =
     {
         {0.0f, 0.0f},
-        {8.0f, 0.0f},
-        {8.0f, 8.0f},
-        {0.0f, 8.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
     };
 
     static const vec2 tex_coords[] =
@@ -288,26 +288,26 @@ int make_text(gui_vertex *data, const char *text)
 
     int vert_count = 0;
 
-    int x = 0;
-    int y = 0;
+    float x = 0;
+    float y = 0;
 
     for (int i = 0; text[i] != '\0'; i++)
     {
         if (text[i] == '\n')
         {
-            y -= 9;
+            y -= scale * 9.0f / 8.0f;
             x = 0;
             continue;
         }
         if (text[i] == ' ')
         {
-            x += 4;
+            x += scale / 2.0f;
             continue;
         }
         for (int j = 0; j < 6; j++)
         {
-            data->position.x = positions[indices[j]].x + x + 1;
-            data->position.y = positions[indices[j]].y + y - 1;
+            data->position.x = positions[indices[j]].x * scale + x + scale / 8.0f;
+            data->position.y = positions[indices[j]].y * scale + y - scale / 8.0f;
             data->tex_coord.x = (text[i] % 16 + tex_coords[indices[j]].x) / 16.0f;
             data->tex_coord.y = (text[i] / 16 + tex_coords[indices[j]].y) / 16.0f;
             data->tex_id = 1;
@@ -317,8 +317,8 @@ int make_text(gui_vertex *data, const char *text)
         }
         for (int j = 0; j < 6; j++)
         {
-            data->position.x = positions[indices[j]].x + x;
-            data->position.y = positions[indices[j]].y + y;
+            data->position.x = positions[indices[j]].x * scale + x;
+            data->position.y = positions[indices[j]].y * scale + y;
             data->tex_coord.x = (text[i] % 16 + tex_coords[indices[j]].x) / 16.0f;
             data->tex_coord.y = (text[i] / 16 + tex_coords[indices[j]].y) / 16.0f;
             data->tex_id = 1;
@@ -326,7 +326,9 @@ int make_text(gui_vertex *data, const char *text)
             data++;
             vert_count++;
         }
-        x += char_widths[text[i]];
+        x += char_widths[text[i]] * scale / 8.0f;
     }
+    size->x = x;
+    size->y = y;
     return vert_count;
 }

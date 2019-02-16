@@ -141,9 +141,7 @@ void game_tick(game *g)
     {
         for (int i = 0; i < g->w.num_players; i++)
         {
-            g->w.players[i].prev_x = g->w.players[i].x;
-            g->w.players[i].prev_y = g->w.players[i].y;
-            g->w.players[i].prev_z = g->w.players[i].z;
+            g->w.players[i].prev_position = g->w.players[i].position;
         }
 
         FD_ZERO(&g->read_fds);
@@ -221,9 +219,12 @@ void game_tick(game *g)
                                 {
                                     if (g->w.players[i].id == packet->player_id)
                                     {
-                                        g->w.players[i].x = ntohs(packet->x);
-                                        g->w.players[i].y = ntohs(packet->y);
-                                        g->w.players[i].z = ntohs(packet->z);
+                                        g->w.players[i].position = (vec3)
+                                        {
+                                            (short) ntohs(packet->x) / 32.0f,
+                                            (short) ntohs(packet->y) / 32.0f + g->w.player.box.size.y * 0.5f,
+                                            (short) ntohs(packet->z) / 32.0f
+                                        };
                                         break;
                                     }
                                 }
@@ -307,7 +308,7 @@ void game_draw(game *g, double delta_time, double time_since_tick)
         strcat(text, "Noclip mode\n");
     else if (g->w.fly_mode)
         strcat(text, "Fly mode\n");
-    gui_set_text(g->debug_text, text);
+    gui_set_text(g->debug_text, text, 8.0f);
     g->debug_text->position = (vec2) {
         -g->window_width / 2.0f / g->gui.scale + 2.0f,
         g->window_height / 2.0f / g->gui.scale - 10.0f,

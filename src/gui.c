@@ -63,15 +63,6 @@ void sprite_destroy(gui_sprite *sprite)
     destroy_gui_object(&sprite->vao, &sprite->vbo);
 }
 
-void text_init(gui_text *text, gui *g)
-{
-    init_gui_object(&text->vao, &text->vbo, g);
-
-    text->vert_count = make_text(gui_buffer_data, text->text);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gui_vertex) * text->vert_count, gui_buffer_data, GL_STATIC_DRAW);
-}
-
 gui_text *gui_create_text(gui *g)
 {
     gui_text *text = &g->texts[g->num_texts];
@@ -81,10 +72,10 @@ gui_text *gui_create_text(gui *g)
     return text;
 }
 
-void gui_set_text(gui_text *text, const char *s)
+void gui_set_text(gui_text *text, const char *s, float scale)
 {
     strcpy(text->text, s);
-    text->vert_count = make_text(gui_buffer_data, text->text);
+    text->vert_count = make_text(gui_buffer_data, text->text, scale, &text->size);
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gui_vertex) * text->vert_count, gui_buffer_data, GL_DYNAMIC_DRAW);
 }
@@ -119,6 +110,8 @@ void gui_init(gui *g, world *w)
     load_png_texture("res/textures/ascii.png");
 
     g->num_texts = 0;
+
+    g->player_id_text = gui_create_text(g);
 
     g->crosshair_sprite.position = (vec2) {0.0f, 0.0f};
     g->crosshair_sprite.size = (vec2) {15.0f, 15.0f};
@@ -171,7 +164,12 @@ void gui_draw(gui *g)
     mat4 model;
     identity(&model);
 
-    vec3 translation = {1.1f, -1.2f, -1.3f};
+    vec3 translation = {0.5f, -0.5f, -0.6f};
+    vec3 block_scale = {0.4f, 0.4f, 0.4f};
+
+    scale(&TEMP_MAT, &block_scale);
+    multiply(&model, &TEMP_MAT, &model);
+
     rotate(&TEMP_MAT, &AXIS_UP, RADIANS(45.0f));
     multiply(&model, &TEMP_MAT, &model);
 
@@ -195,6 +193,34 @@ void gui_draw(gui *g)
     GLint texture_locations[] = { 1, 2 };
     glUniform1iv(g->gui_shader.texture_location, 2, texture_locations);
 
+    identity(&TEMP_MAT);
+    multiply(&TEMP_MAT, &g->w->world_view, &TEMP_MAT);
+    multiply(&TEMP_MAT, &g->w->world_projection, &TEMP_MAT);
+    glUniformMatrix4fv(g->gui_shader.projection_location, 1, GL_FALSE, TEMP_MAT.value);
+
+    for (int i = 0; i < g->w->num_players; i++)
+    {
+        char buffer[32];
+        sprintf(buffer, "Player %d", g->w->players[i].id);
+        gui_set_text(g->player_id_text, buffer, 1.0f / 8.0f);
+        identity(&model);
+        translation = (vec3)
+        {
+            -g->player_id_text->size.x / 2.0f,
+            1.1f,
+            0.0f
+        };
+        translate(&TEMP_MAT, &translation);
+        multiply(&model, &TEMP_MAT, &model);
+        rotate(&TEMP_MAT, &AXIS_UP, RADIANS(-g->w->camera_rotation.y));
+        multiply(&model, &TEMP_MAT, &model);
+        translate(&TEMP_MAT, &g->w->players[i].smoothed_position);
+        multiply(&model, &TEMP_MAT, &model);
+        glUniformMatrix4fv(g->gui_shader.model_location, 1, GL_FALSE, model.value);
+        glBindVertexArray(g->player_id_text->vao);
+        glDrawArrays(GL_TRIANGLES, 0, g->player_id_text->vert_count);
+    }
+
     ortho(&TEMP_MAT, -g->window_width / 2 / g->scale, g->window_width / 2 / g->scale, -g->window_height / 2 / g->scale, g->window_height / 2 / g->scale, -1.0f, 1.0f);
     glUniformMatrix4fv(g->gui_shader.projection_location, 1, GL_FALSE, TEMP_MAT.value);
 
@@ -208,7 +234,7 @@ void gui_draw(gui *g)
     g->hotbar_selection_sprite.position.x = (g->w->selected_block - 1) % 9 * 20.0f - 4 * 20.0f;
     sprite_draw(&g->hotbar_selection_sprite, g);
 
-    for (int i = 0; i < g->num_texts; i++)
+    for (int i = 1; i < g->num_texts; i++)
     {
         gui_text *text = &g->texts[i];
         translate_v2(&TEMP_MAT, &text->position);

@@ -80,6 +80,14 @@ void rotate(mat4 *matrix, vec3 *axis, float angle)
     matrix->value[15] = 1.0f;
 }
 
+void scale(mat4 *m, vec3 *v)
+{
+    m->value[0]  = v->x; m->value[1]  = 0.0f; m->value[2]  = 0.0f; m->value[3]  = 0.0f;
+    m->value[4]  = 0.0f; m->value[5]  = v->y; m->value[6]  = 0.0f; m->value[7]  = 0.0f;
+    m->value[8]  = 0.0f; m->value[9]  = 0.0f; m->value[10] = v->z; m->value[11] = 0.0f;
+    m->value[12] = 0.0f; m->value[13] = 0.0f; m->value[14] = 0.0f; m->value[15] = 1.0f;
+}
+
 void multiply(mat4 *m, mat4 *m1, mat4 *m2)
 {
     mat4 result;

@@ -477,28 +477,13 @@ void world_draw(world *w, double delta_time, double time_since_tick)
     glBindVertexArray(w->frame_vao);
 
     vec3 data[24];
-    vec3 position;
-    vec3 prev_position;
 
     for (int i = 0; i < w->num_players; i++)
     {
-        position = (vec3)
-        {
-            w->players[i].x / 32.0f,
-            w->players[i].y / 32.0f + w->player.box.size.y * 0.5f,
-            w->players[i].z / 32.0f
-        };
+        network_player *player = &w->players[i];
+        lerp_v3(&player->smoothed_position, &player->prev_position, &player->position, time_since_tick * 20.0f);
 
-        prev_position = (vec3)
-        {
-            w->players[i].prev_x / 32.0f,
-            w->players[i].prev_y / 32.0f + w->player.box.size.y * 0.5f,
-            w->players[i].prev_z / 32.0f
-        };
-
-        lerp_v3(&position, &prev_position, &position, time_since_tick * 20.0f);
-
-        make_frame(data, &position, &w->player.box);
+        make_frame(data, &player->smoothed_position, &w->player.box);
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
         glDrawArrays(GL_LINES, 0, 24);
@@ -506,7 +491,7 @@ void world_draw(world *w, double delta_time, double time_since_tick)
 
     if (w->block_in_range)
     {
-        position = (vec3)
+        vec3 position =
         {
             w->selected_block_x,
             w->selected_block_y,

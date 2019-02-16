@@ -14,7 +14,7 @@ out vec2 pass_tex_coord;
 void main()
 {
     gl_Position = projection * view * model * vec4(position, 1.0);
-    vec3 normal = mat3(transpose(inverse(model))) * normal;
+    vec3 normal = normalize(mat3(transpose(inverse(model))) * normal);
     pass_brightness = 0.6;
     pass_brightness += clamp(dot(vec3(-0.5, 0.4, 0.0), normal), -0.15, 1.0) * 0.5;
     pass_brightness += clamp(dot(vec3(0.5, 0.4, 0.0), normal), -0.15, 1.0) * 0.5;

@@ -39,6 +39,7 @@ void identity(mat4 *m);
 void translate(mat4 *m, vec3 *v);
 void translate_v2(mat4 *m, vec2 *v);
 void rotate(mat4 *m, vec3 *axis, float angle);
+void scale(mat4 *m, vec3* v);
 
 void add_v3(vec3 *v, vec3 *v1, vec3 *v2);
 void add_v2(vec2 *v, vec2 *v1, vec2 *v2);
