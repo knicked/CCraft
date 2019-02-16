@@ -135,6 +135,7 @@ void spawn_player(server *s, SOCKET player_socket, const char *nickname)
 void despawn_player(server *s, int player_index)
 {
     player *p = &s->players[player_index];
+    s->ids_used[p->id] = 0;
 
     printf("%s left the game.\n", p->nickname);
     close(p->socket);
@@ -154,8 +155,6 @@ void despawn_player(server *s, int player_index)
     {
         send(s->players[i].socket, &packet, sizeof(packet), 0);
     }
-
-    s->ids_used[p->id] = 0;
 }
 
 void server_tick(server *s)
