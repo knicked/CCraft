@@ -36,6 +36,11 @@
 
 #define _GLFW_KEY_INVALID -2
 
+// 'OCR_HAND undeclared' patch
+#ifndef OCR_HAND
+#define OCR_HAND 32649
+#endif
+
 // Returns the window style for the specified window
 //
 static DWORD getWindowStyle(const _GLFWwindow* window)
